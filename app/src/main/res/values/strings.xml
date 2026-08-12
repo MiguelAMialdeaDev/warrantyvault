@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WarrantyVault</string>
+    <color name="ic_launcher_background">#4361EE</color>
+
+    <!-- Notification channel -->
+    <string name="notif_channel_name">Vencimiento de garantías</string>
+    <string name="notif_channel_description">Alertas antes de que expiren tus garantías</string>
+
+    <!-- Notification content (WarrantyExpirationWorker) -->
+    <string name="notif_title_last_day">¡Último día de garantía!</string>
+    <string name="notif_title_days_left">Garantía expira en %1$d días</string>
+    <string name="notif_title_expiring">Garantía por vencer</string>
+    <string name="notif_message_last_day">La garantía de %1$s expira mañana. Última oportunidad para reclamar.</string>
+    <string name="notif_message_days_left">La garantía de %1$s expira en %2$d días.</string>
+
+    <!-- Billing (BillingManager) -->
+    <string name="billing_error_network">No hemos podido conectar con Google Play. Revisa tu conexión y vuelve a intentarlo.</string>
+    <string name="billing_error_unavailable">Las suscripciones no están disponibles en este dispositivo.</string>
+    <string name="billing_error_product_unavailable">El plan no está disponible ahora mismo. Inténtalo de nuevo en unos minutos.</string>
+    <string name="billing_error_generic">No hemos podido completar la compra. No se te ha cobrado nada.</string>
+    <string name="billing_purchase_pending">Tu pago está pendiente de confirmación. Activaremos Premium en cuanto Google Play lo apruebe.</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Status -->
+    <string name="status_active">Activa</string>
+    <string name="status_expiring">Por vencer</string>
+    <string name="status_expired">Expirada</string>
+
+    <!-- Confirm delete dialog -->
+    <string name="delete_dialog_title">Eliminar garantía</string>
+    <string name="delete_dialog_message">¿Estás seguro de que quieres eliminar \"%1$s\"? Esta acción no se puede deshacer.</string>
+    <string name="delete_dialog_confirm">Eliminar</string>
+    <string name="delete_dialog_dismiss">Cancelar</string>
+
+    <!-- Days remaining / expired -->
+    <string name="days_remaining_other">%1$d días</string>
+    <string name="days_remaining_one">1 día</string>
+    <string name="expires_today">Expira hoy</string>
+    <string name="expired_yesterday">Expiró ayer</string>
+    <string name="expired_days">Expiró hace %1$d días</string>
+    <string name="expired_month_one">Expiró hace 1 mes</string>
+    <string name="expired_months">Expiró hace %1$d meses</string>
+    <string name="expired_year_one">Expiró hace 1 año</string>
+    <string name="expired_years">Expiró hace %1$d años</string>
+</resources>

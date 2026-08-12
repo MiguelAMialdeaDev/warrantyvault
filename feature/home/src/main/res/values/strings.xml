@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_app_title">WarrantyVault</string>
+    <string name="home_action_search">Buscar</string>
+    <string name="home_action_close_search">Cerrar búsqueda</string>
+    <string name="home_action_settings">Ajustes</string>
+    <string name="home_search_placeholder">Buscar…</string>
+
+    <string name="home_fab_add">Añadir</string>
+    <string name="home_fab_premium">Hazte Premium</string>
+
+    <string name="home_premium_banner_title">Desbloquea más garantías</string>
+    <string name="home_premium_banner_subtitle">Actualiza a Premium para productos ilimitados</string>
+    <string name="home_premium_banner_action">Ver Premium</string>
+
+    <string name="home_empty_title">Sin garantías aún</string>
+    <string name="home_empty_subtitle">Añade tu primer producto para empezar a proteger tus compras</string>
+    <string name="home_empty_action">Añadir garantía</string>
+    <string name="home_no_results_title">Sin resultados</string>
+    <string name="home_no_results_subtitle">No hay garantías que coincidan con este filtro</string>
+
+    <string name="home_filter_all">Todas</string>
+    <string name="home_filter_active">Activas</string>
+    <string name="home_filter_expiring">Por vencer</string>
+    <string name="home_filter_expired">Expiradas</string>
+
+    <string name="home_stat_active">Activas</string>
+    <string name="home_stat_expiring">Por vencer</string>
+    <string name="home_stat_expired">Expiradas</string>
+
+    <!-- Status labels para a11y de WarrantyCard -->
+    <string name="home_a11y_active">activa</string>
+    <string name="home_a11y_expiring">por vencer</string>
+    <string name="home_a11y_expired">expirada</string>
+    <string name="home_a11y_days_remaining">%1$d días restantes</string>
+    <string name="home_a11y_expires_today">expira hoy</string>
+    <string name="home_a11y_expired_days">expiró hace %1$d días</string>
+
+    <!-- Categorías (también usadas en WarrantyCard subtitle) -->
+    <string name="category_electronics">Electrónica</string>
+    <string name="category_appliance">Electrodoméstico</string>
+    <string name="category_gaming">Gaming</string>
+    <string name="category_clothing">Ropa</string>
+    <string name="category_other">Otro</string>
+</resources>

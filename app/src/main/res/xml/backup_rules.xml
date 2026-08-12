@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Reglas legacy de Auto Backup (Android < 12). Backup completo por defecto
+  (BD + DataStore + fotos en ticket_photos/). Equivalente a la regla "todo
+  incluido" de data_extraction_rules.xml.
+-->
+<full-backup-content />

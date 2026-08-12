@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="detail_back">Volver</string>
+    <string name="detail_action_edit">Editar</string>
+    <string name="detail_action_delete">Eliminar</string>
+    <string name="detail_photo_ticket">Foto del ticket</string>
+
+    <string name="detail_purchased_on">Comprado %1$s</string>
+    <string name="detail_expires_on">Expira %1$s</string>
+    <string name="detail_days_remaining_label">días restantes</string>
+    <string name="detail_days_expired_label">días expirada</string>
+
+    <string name="detail_info_store">Tienda</string>
+    <string name="detail_info_price">Precio</string>
+    <string name="detail_info_purchase_date">Fecha compra</string>
+    <string name="detail_info_end_date">Fin garantía</string>
+    <string name="detail_info_duration">Duración</string>
+    <string name="detail_info_notes">Notas</string>
+
+    <string name="detail_duration_year_one">1 año</string>
+    <string name="detail_duration_years">%1$d años</string>
+    <string name="detail_duration_months">%1$d meses</string>
+</resources>

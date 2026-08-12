@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WarrantyVault</string>
+
+    <!-- Notification channel -->
+    <string name="notif_channel_name">Warranty expiration</string>
+    <string name="notif_channel_description">Alerts before your warranties expire</string>
+
+    <!-- Notification content (WarrantyExpirationWorker) -->
+    <string name="notif_title_last_day">Last day of warranty!</string>
+    <string name="notif_title_days_left">Warranty expires in %1$d days</string>
+    <string name="notif_title_expiring">Warranty expiring</string>
+    <string name="notif_message_last_day">Your %1$s warranty expires tomorrow. Last chance to claim.</string>
+    <string name="notif_message_days_left">Your %1$s warranty expires in %2$d days.</string>
+
+    <!-- Billing (BillingManager) -->
+    <string name="billing_error_network">We could not reach Google Play. Check your connection and try again.</string>
+    <string name="billing_error_unavailable">Subscriptions are not available on this device.</string>
+    <string name="billing_error_product_unavailable">This plan is not available right now. Try again in a few minutes.</string>
+    <string name="billing_error_generic">We could not complete the purchase. You have not been charged.</string>
+    <string name="billing_purchase_pending">Your payment is awaiting confirmation. Premium will activate as soon as Google Play approves it.</string>
+</resources>

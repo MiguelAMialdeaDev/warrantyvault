@@ -1,0 +1,118 @@
+package com.miguelcode.warrantyvault
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.rememberNavController
+import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
+import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
+import com.miguelcode.warrantyvault.navigation.AppNavGraph
+import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+
+class MainActivity : ComponentActivity() {
+
+    private val preferencesRepository: PreferencesRepository by inject()
+    private val billingManager: BillingManagerContract by inject()
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        // Sincroniza la preferencia con la decisión real del usuario.
+        lifecycleScope.launch {
+            preferencesRepository.setNotificationsEnabled(granted)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        // Sincroniza la preferencia con el estado real del permiso del sistema en cada
+        // creación. Si el usuario revoca/concede en Ajustes, la preferencia local se ajusta.
+        syncNotificationPreferenceWithSystem()
+        // Solo en la primera creación: pide el permiso si hace falta (evita re-mostrar
+        // el dialog al rotar).
+        if (savedInstanceState == null) {
+            requestNotificationPermissionIfNeeded()
+        }
+        setContent {
+            val themeMode by preferencesRepository.themeModeFlow
+                .collectAsState(initial = "system")
+            val darkTheme = when (themeMode) {
+                "dark" -> true
+                "light" -> false
+                else -> isSystemInDarkTheme()
+            }
+
+            WarrantyVaultTheme(darkTheme = darkTheme) {
+                // initial = null: hasta que DataStore emite el valor real, mostramos un splash
+                // vacío. Así evitamos pintar Home y luego saltar a Onboarding (flash).
+                val onboardingDone by preferencesRepository.isOnboardingDoneFlow
+                    .collectAsState(initial = null)
+
+                if (onboardingDone == null) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) { Box(Modifier.fillMaxSize()) }
+                } else {
+                    val navController = rememberNavController()
+                    AppNavGraph(navController = navController, onboardingDone = onboardingDone!!)
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // El usuario puede cancelar o resucitar la suscripción desde la app de Google
+        // Play sin pasar por la nuestra. Al volver a primer plano revalidamos, que es
+        // el único momento fiable para enterarnos.
+        billingManager.refreshPurchases()
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun syncNotificationPreferenceWithSystem() {
+        // < API 33: no hay permiso runtime, no hay nada que sincronizar.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        // Solo bajamos a false cuando el sistema NO ha concedido. Nunca subimos a true
+        // automáticamente: el usuario tiene que activarlo explícitamente en Settings o
+        // conceder el permiso desde el dialog del sistema. Así evitamos pisar la
+        // preferencia local del usuario que ha apagado el toggle a propósito.
+        if (!granted) {
+            lifecycleScope.launch { preferencesRepository.setNotificationsEnabled(false) }
+        }
+    }
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="addedit_title_new">New warranty</string>
+    <string name="addedit_title_edit">Edit warranty</string>
+    <string name="addedit_nav_close">Close</string>
+    <string name="addedit_nav_save">Save</string>
+    <string name="addedit_saving">Saving…</string>
+
+    <string name="addedit_field_product_name">Product name *</string>
+    <string name="addedit_field_store">Store</string>
+    <string name="addedit_field_price">Price</string>
+    <string name="addedit_field_purchase_date">Purchase date *</string>
+    <string name="addedit_field_duration">Duration *</string>
+    <string name="addedit_field_notes">Notes</string>
+
+    <string name="addedit_segment_months">Months</string>
+    <string name="addedit_segment_years">Years</string>
+
+    <string name="addedit_end_date_label">Warranty ends: %1$s</string>
+
+    <string name="addedit_date_select">Select date</string>
+    <string name="addedit_date_accept">OK</string>
+    <string name="addedit_date_cancel">Cancel</string>
+
+    <string name="addedit_photo_ticket">Receipt photo</string>
+    <string name="addedit_photo_add">Add photo</string>
+    <string name="addedit_photo_add_label">Add receipt photo</string>
+
+    <string name="addedit_error_max_months">Maximum 600 months</string>
+    <string name="addedit_error_max_years">Maximum 50 years</string>
+    <string name="addedit_error_invalid_number">Invalid number</string>
+    <string name="addedit_error_must_positive">Must be greater than 0</string>
+    <string name="addedit_error_name_required">Name is required</string>
+    <string name="addedit_error_date_required">Date is required</string>
+    <string name="addedit_error_duration_required">Duration is required</string>
+    <string name="addedit_error_premium_limit">You\'ve reached the free limit. Go premium to add more warranties.</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="detail_back">Back</string>
+    <string name="detail_action_edit">Edit</string>
+    <string name="detail_action_delete">Delete</string>
+    <string name="detail_photo_ticket">Receipt photo</string>
+
+    <string name="detail_purchased_on">Purchased %1$s</string>
+    <string name="detail_expires_on">Expires %1$s</string>
+    <string name="detail_days_remaining_label">days remaining</string>
+    <string name="detail_days_expired_label">days overdue</string>
+
+    <string name="detail_info_store">Store</string>
+    <string name="detail_info_price">Price</string>
+    <string name="detail_info_purchase_date">Purchase date</string>
+    <string name="detail_info_end_date">Warranty ends</string>
+    <string name="detail_info_duration">Duration</string>
+    <string name="detail_info_notes">Notes</string>
+
+    <string name="detail_duration_year_one">1 year</string>
+    <string name="detail_duration_years">%1$d years</string>
+    <string name="detail_duration_months">%1$d months</string>
+</resources>

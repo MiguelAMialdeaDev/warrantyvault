@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="addedit_title_new">Nueva garantía</string>
+    <string name="addedit_title_edit">Editar garantía</string>
+    <string name="addedit_nav_close">Cerrar</string>
+    <string name="addedit_nav_save">Guardar</string>
+    <string name="addedit_saving">Guardando…</string>
+
+    <string name="addedit_field_product_name">Nombre del producto *</string>
+    <string name="addedit_field_store">Tienda</string>
+    <string name="addedit_field_price">Precio</string>
+    <string name="addedit_field_purchase_date">Fecha de compra *</string>
+    <string name="addedit_field_duration">Duración *</string>
+    <string name="addedit_field_notes">Notas</string>
+
+    <string name="addedit_segment_months">Meses</string>
+    <string name="addedit_segment_years">Años</string>
+
+    <string name="addedit_end_date_label">Fin de garantía: %1$s</string>
+
+    <string name="addedit_date_select">Seleccionar fecha</string>
+    <string name="addedit_date_accept">Aceptar</string>
+    <string name="addedit_date_cancel">Cancelar</string>
+
+    <string name="addedit_photo_ticket">Foto del ticket</string>
+    <string name="addedit_photo_add">Añadir foto</string>
+    <string name="addedit_photo_add_label">Añadir foto del ticket</string>
+
+    <string name="addedit_error_max_months">Máximo 600 meses</string>
+    <string name="addedit_error_max_years">Máximo 50 años</string>
+    <string name="addedit_error_invalid_number">Número inválido</string>
+    <string name="addedit_error_must_positive">Debe ser mayor que 0</string>
+    <string name="addedit_error_name_required">El nombre es obligatorio</string>
+    <string name="addedit_error_date_required">La fecha es obligatoria</string>
+    <string name="addedit_error_duration_required">La duración es obligatoria</string>
+    <string name="addedit_error_premium_limit">Has alcanzado el límite gratuito. Hazte premium para añadir más garantías.</string>
+</resources>

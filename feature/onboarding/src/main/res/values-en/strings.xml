@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title_1">Never lose a warranty again</string>
+    <string name="onboarding_subtitle_1">Keep all your warranties in one place, always within reach</string>
+    <string name="onboarding_title_2">We notify you before they expire</string>
+    <string name="onboarding_subtitle_2">Get timely reminders to claim before it\'s too late</string>
+    <string name="onboarding_title_3">Free to start</string>
+    <string name="onboarding_subtitle_3">3 free warranties. Upgrade to Premium for unlimited products</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Get started</string>
+</resources>

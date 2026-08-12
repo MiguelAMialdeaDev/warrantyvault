@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="premium_title">Premium</string>
+    <string name="premium_back">Volver</string>
+    <string name="premium_compare">Compara planes</string>
+
+    <!--
+      La tabla solo puede listar lo que la app hace HOY. Cobrar por una función que no
+      existe es motivo de rechazo en Play y de reembolso. Lo que está en camino va en la
+      sección de roadmap de abajo, fuera de la comparativa de pago.
+      Ahora mismo el único gate real es CheckPremiumLimitUseCase (3 garantías gratis).
+    -->
+    <string name="premium_column_free">Gratis</string>
+    <string name="premium_column_premium">Premium</string>
+    <string name="premium_feature_warranties">Garantías</string>
+    <string name="premium_free_limit">3</string>
+    <string name="premium_unlimited">Ilimitadas</string>
+    <string name="premium_feature_notifications">Avisos de vencimiento</string>
+    <string name="premium_notifications_detail">30, 14, 7 y 1 día antes</string>
+    <string name="premium_feature_photo">Foto del ticket</string>
+    <string name="premium_included">Sí</string>
+
+    <string name="premium_roadmap_title">En camino</string>
+    <string name="premium_roadmap_pdf">Exportar tus garantías a PDF</string>
+    <string name="premium_roadmap_backup">Copia de seguridad en la nube</string>
+    <string name="premium_roadmap_note">Todavía no están disponibles. No pagas por ellas: se incluirán en Premium cuando estén listas.</string>
+
+    <string name="premium_monthly">Mensual</string>
+    <string name="premium_monthly_period">/mes</string>
+    <string name="premium_annual">Anual</string>
+    <string name="premium_annual_period">/año</string>
+    <!--
+      Precios de respaldo, solo mientras Play responde. El precio bueno es siempre el de
+      ProductDetails: Play aplica impuestos y moneda por país y estos se quedarían viejos.
+    -->
+    <string name="premium_monthly_price">1,99 €</string>
+    <string name="premium_annual_price">7,99 €</string>
+    <string name="premium_save_badge">Ahorra %1$d%%</string>
+
+    <string name="premium_cta">Empezar con Premium</string>
+    <string name="premium_cta_loading">Cargando planes…</string>
+    <string name="premium_cta_purchased">Premium activado</string>
+    <string name="premium_cancel_anytime">Cancela cuando quieras</string>
+</resources>

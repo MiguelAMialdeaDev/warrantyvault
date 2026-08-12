@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Reglas de backup / device transfer.
+
+  Por defecto Android respalda todo el directorio de la app (BD Room, DataStore,
+  fotos en files/ticket_photos/). Eso es lo que queremos: si el usuario cambia
+  de móvil con Google Backup activo, recupera TODO incluidas las fotos.
+  Las fotos viajan cifradas en el backup de Google (no van a un servidor nuestro).
+
+  Si en el futuro quisiéramos excluir algo, va aquí dentro de cada bloque:
+    <exclude domain="file" path="..." />
+-->
+<data-extraction-rules>
+    <cloud-backup />
+    <device-transfer />
+</data-extraction-rules>
