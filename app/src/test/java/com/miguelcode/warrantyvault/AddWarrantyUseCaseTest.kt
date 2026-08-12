@@ -9,7 +9,10 @@ import com.miguelcode.warrantyvault.domain.notification.NotificationScheduler
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import com.miguelcode.warrantyvault.domain.repository.WarrantyRepository
 import com.miguelcode.warrantyvault.domain.usecase.AddWarrantyUseCase
+import com.miguelcode.warrantyvault.domain.usecase.CheckPremiumLimitUseCase
+import com.miguelcode.warrantyvault.domain.usecase.PremiumLimitReachedException
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -29,15 +32,18 @@ class AddWarrantyUseCaseTest {
     private val notificationScheduler: NotificationScheduler = mockk(relaxUnitFun = true)
     private val preferencesRepository: PreferencesRepository = mockk()
     private val analytics: AnalyticsTracker = mockk(relaxUnitFun = true)
+    private val checkPremiumLimitUseCase: CheckPremiumLimitUseCase = mockk()
     private lateinit var useCase: AddWarrantyUseCase
 
     @Before
     fun setup() {
+        coEvery { checkPremiumLimitUseCase() } returns true
         useCase = AddWarrantyUseCase(
             repository,
             notificationScheduler,
             preferencesRepository,
-            analytics
+            analytics,
+            checkPremiumLimitUseCase
         )
     }
 
@@ -164,6 +170,27 @@ class AddWarrantyUseCaseTest {
         assertEquals("OTHER", params.captured["category"])
         assertEquals(false, params.captured["has_photo"])
         assertEquals(false, params.captured["has_price"])
+    }
+
+    @Test
+    fun `reaching the free limit blocks the insert`() = runTest {
+        // El tope se comprobaba solo al abrir la pantalla y se congelaba en el estado: si
+        // el usuario perdía premium entre abrirla y guardar, colaba una garantía de más.
+        coEvery { checkPremiumLimitUseCase() } returns false
+
+        val result = useCase(warranty())
+
+        assertTrue(result is Result.Error)
+        assertTrue((result as Result.Error).exception is PremiumLimitReachedException)
+    }
+
+    @Test
+    fun `reaching the free limit does not write to the repository`() = runTest {
+        coEvery { checkPremiumLimitUseCase() } returns false
+
+        useCase(warranty())
+
+        coVerify(exactly = 0) { repository.addWarranty(any()) }
     }
 
     @Test

@@ -2,15 +2,18 @@
 <!--
   Reglas de backup / device transfer.
 
-  Por defecto Android respalda todo el directorio de la app (BD Room, DataStore,
-  fotos en files/ticket_photos/). Eso es lo que queremos: si el usuario cambia
-  de móvil con Google Backup activo, recupera TODO incluidas las fotos.
-  Las fotos viajan cifradas en el backup de Google (no van a un servidor nuestro).
+  El backup en la nube tiene una cuota de 25 MB por app. Las fotos de ticket se copian
+  sin recomprimir (2-5 MB cada una), así que con pocas garantías se supera la cuota y
+  Google deja de guardar el backup ENTERO, incluidas la BD Room y el DataStore. Por eso
+  las fotos se excluyen solo del backup en la nube: es preferible recuperar las garantías
+  sin fotos que no recuperar nada.
 
-  Si en el futuro quisiéramos excluir algo, va aquí dentro de cada bloque:
-    <exclude domain="file" path="..." />
+  El traspaso directo entre móviles (device-transfer) no tiene esa cuota, así que ahí sí
+  viajan las fotos.
 -->
 <data-extraction-rules>
-    <cloud-backup />
+    <cloud-backup>
+        <exclude domain="file" path="ticket_photos" />
+    </cloud-backup>
     <device-transfer />
 </data-extraction-rules>

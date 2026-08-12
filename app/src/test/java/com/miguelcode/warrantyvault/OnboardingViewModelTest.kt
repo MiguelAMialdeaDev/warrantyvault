@@ -72,7 +72,10 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `completeOnboarding called twice persists the flag once per call`() = runTest {
+    fun `completeOnboarding called twice only navigates once`() = runTest {
+        // Dos taps rápidos (o "Saltar" seguido de "Empezar") ejecutaban onDone dos veces:
+        // la primera navegación saca Onboarding del back stack y la segunda apilaba un
+        // segundo Home encima, porque su popUpTo ya no encontraba la ruta.
         coEvery { preferencesRepository.setOnboardingDone() } returns Unit
         var callbacks = 0
 
@@ -80,7 +83,7 @@ class OnboardingViewModelTest {
         vm.completeOnboarding { callbacks++ }
         vm.completeOnboarding { callbacks++ }
 
-        assertEquals(2, callbacks)
-        coVerify(exactly = 2) { preferencesRepository.setOnboardingDone() }
+        assertEquals(1, callbacks)
+        coVerify(exactly = 1) { preferencesRepository.setOnboardingDone() }
     }
 }

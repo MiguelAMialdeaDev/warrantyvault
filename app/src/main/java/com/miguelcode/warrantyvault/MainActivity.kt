@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -41,6 +42,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Antes de super.onCreate: después, la ventana ya se ha creado con el tema del
+        // manifiesto y el cambio no evita el fotograma del color equivocado.
+        applyForcedWindowTheme()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // Sincroniza la preferencia con el estado real del permiso del sistema en cada
@@ -53,12 +57,16 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             val themeMode by preferencesRepository.themeModeFlow
-                .collectAsState(initial = "system")
+                .collectAsState(initial = ThemeModeCache.MODE_SYSTEM)
             val darkTheme = when (themeMode) {
-                "dark" -> true
-                "light" -> false
+                ThemeModeCache.MODE_DARK -> true
+                ThemeModeCache.MODE_LIGHT -> false
                 else -> isSystemInDarkTheme()
             }
+
+            // Deja el modo elegido donde el próximo arranque en frío pueda leerlo sin
+            // esperar a DataStore, que es lo que causaba el destello.
+            LaunchedEffect(themeMode) { ThemeModeCache.write(this@MainActivity, themeMode) }
 
             WarrantyVaultTheme(darkTheme = darkTheme) {
                 // initial = null: hasta que DataStore emite el valor real, mostramos un splash
@@ -85,6 +93,18 @@ class MainActivity : ComponentActivity() {
         // Play sin pasar por la nuestra. Al volver a primer plano revalidamos, que es
         // el único momento fiable para enterarnos.
         billingManager.refreshPurchases()
+    }
+
+    /**
+     * Con el modo "sistema" no se toca nada: de eso ya se encarga `values-night`. Solo
+     * cuando el usuario ha forzado claro u oscuro desde Ajustes hace falta sustituir el
+     * tema de ventana, porque el recurso por defecto sigue al sistema y no a la app.
+     */
+    private fun applyForcedWindowTheme() {
+        when (ThemeModeCache.read(this)) {
+            ThemeModeCache.MODE_DARK -> setTheme(R.style.Theme_WarrantyVault_Forced_Dark)
+            ThemeModeCache.MODE_LIGHT -> setTheme(R.style.Theme_WarrantyVault_Forced_Light)
+        }
     }
 
     private fun requestNotificationPermissionIfNeeded() {

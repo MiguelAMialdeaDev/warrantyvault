@@ -33,9 +33,12 @@ class DetailViewModel(
         viewModelScope.launch {
             warrantyRepository.getWarrantyByIdFlow(warrantyId).collect { warranty ->
                 if (warranty == null) {
-                    // La warranty fue borrada desde otra pantalla. No marcamos isDeleted
-                    // para no disparar la navegación si fuimos nosotros quien borró.
-                    _state.update { it.copy(isLoading = false) }
+                    // Si nunca llegamos a cargarla, el id no existe (garantía borrada
+                    // antes de restaurar el estado, enlace viejo): sin marcarlo, ninguna
+                    // rama de la pantalla se cumplía y quedaba completamente en blanco.
+                    // Si ya la teníamos, fue un borrado desde otra pantalla y se conserva
+                    // lo mostrado para no disparar la navegación si borramos nosotros.
+                    _state.update { it.copy(isLoading = false, notFound = it.warranty == null) }
                 } else {
                     _state.update { it.copy(isLoading = false, warranty = warranty) }
                 }

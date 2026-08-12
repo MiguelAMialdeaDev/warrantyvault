@@ -29,6 +29,13 @@ fun String.toPriceOrNull(): Double? {
         lastComma >= 0 ->
             if (cleaned.length - lastComma - 1 in 1..2) cleaned.replace(',', '.')
             else cleaned.replace(",", "")
+        // Solo punto: mismo criterio que la coma. En España el punto ES el separador
+        // de millares (el propio parser ya lo trata así en "1.299,99"), así que sin
+        // esta simetría "1.299" se leía como 1,299: el precio quedaba dividido por mil
+        // según el usuario escribiese o no los céntimos.
+        lastDot >= 0 ->
+            if (cleaned.length - lastDot - 1 in 1..2) cleaned
+            else cleaned.replace(".", "")
         else -> cleaned
     }
 

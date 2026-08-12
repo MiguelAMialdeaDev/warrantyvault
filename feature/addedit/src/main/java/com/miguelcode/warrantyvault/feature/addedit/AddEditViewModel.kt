@@ -1,5 +1,7 @@
 package com.miguelcode.warrantyvault.feature.addedit
 
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelcode.warrantyvault.domain.model.Result
@@ -9,13 +11,17 @@ import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
 import com.miguelcode.warrantyvault.domain.usecase.AddWarrantyUseCase
 import com.miguelcode.warrantyvault.domain.usecase.CheckPremiumLimitUseCase
 import com.miguelcode.warrantyvault.domain.usecase.GetWarrantyByIdUseCase
+import com.miguelcode.warrantyvault.domain.usecase.PremiumLimitReachedException
 import com.miguelcode.warrantyvault.domain.usecase.UpdateWarrantyUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class AddEditViewModel(
@@ -23,30 +29,48 @@ class AddEditViewModel(
     private val getWarrantyByIdUseCase: GetWarrantyByIdUseCase,
     private val addWarrantyUseCase: AddWarrantyUseCase,
     private val updateWarrantyUseCase: UpdateWarrantyUseCase,
-    private val checkPremiumLimitUseCase: CheckPremiumLimitUseCase
+    private val checkPremiumLimitUseCase: CheckPremiumLimitUseCase,
+    /**
+     * Opcional a propósito: si el entorno no puede aportarlo (tests), el formulario sigue
+     * funcionando y solo se pierde la restauración tras muerte del proceso.
+     */
+    private val savedStateHandle: SavedStateHandle? = null
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddEditState())
     val state: StateFlow<AddEditState> = _state.asStateFlow()
 
     init {
-        if (warrantyId != null) {
-            loadWarranty(warrantyId)
-        } else {
-            checkCanAdd()
+        val draft = restoreDraft()
+        when {
+            // Elegir la foto del ticket saca al usuario de la app, que es justo cuando un
+            // móvil con poca RAM mata el proceso. Con el formulario solo en memoria, al
+            // volver estaba todo en blanco.
+            draft != null -> {
+                _state.value = draft
+                validateAndRecalculate()
+                if (warrantyId == null) checkCanAdd()
+            }
+            warrantyId != null -> loadWarranty(warrantyId)
+            else -> checkCanAdd()
         }
+    }
+
+    /** Único punto de escritura del estado: cada cambio se respalda en el handle. */
+    private fun updateState(transform: (AddEditState) -> AddEditState) {
+        saveDraft(_state.updateAndGet(transform))
     }
 
     private fun loadWarranty(id: Long) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            updateState { it.copy(isLoading = true) }
             when (val result = getWarrantyByIdUseCase(id)) {
                 is Result.Success -> {
                     val warranty = result.data
-                    val totalMonths = ChronoUnit.MONTHS.between(warranty.purchaseDate, warranty.warrantyEndDate)
+                    val totalMonths = monthsBetween(warranty.purchaseDate, warranty.warrantyEndDate)
                     val showAsYears = totalMonths >= 12 && totalMonths % 12 == 0L
                     val displayAmount = if (showAsYears) totalMonths / 12 else totalMonths
-                    _state.update {
+                    updateState {
                         it.copy(
                             isEditMode = true,
                             isLoading = false,
@@ -60,21 +84,35 @@ class AddEditViewModel(
                             warrantyEndDate = warranty.warrantyEndDate,
                             warrantyMonthsError = null,
                             receiptPhotoPath = warranty.receiptPhotoPath,
-                            notes = warranty.notes
+                            notes = warranty.notes,
+                            createdAt = warranty.createdAt
                         )
                     }
                 }
-                is Result.Error -> _state.update {
+                is Result.Error -> updateState {
                     it.copy(isLoading = false, error = result.exception.message)
                 }
             }
         }
     }
 
+    /**
+     * Duración en meses que el usuario introdujo, no la distancia natural entre fechas.
+     *
+     * `plusMonths` recorta el día cuando el mes destino es más corto (31 ene + 1 mes =
+     * 28 feb) y `MONTHS.between` no revierte ese recorte: devuelve un mes de menos. Sin
+     * esta corrección, editar una garantía comprada a fin de mes mostraba N-1 (o 0) y
+     * al recalcular persistía una fecha de fin más corta que la real.
+     */
+    private fun monthsBetween(start: LocalDate, end: LocalDate): Long {
+        val base = ChronoUnit.MONTHS.between(start, end)
+        return if (start.plusMonths(base + 1) == end) base + 1 else base
+    }
+
     private fun checkCanAdd() {
         viewModelScope.launch {
             val canAdd = checkPremiumLimitUseCase()
-            _state.update { it.copy(canAdd = canAdd) }
+            updateState { it.copy(canAdd = canAdd) }
         }
     }
 
@@ -84,44 +122,64 @@ class AddEditViewModel(
         val capped = if (name.length > MAX_PRODUCT_NAME_LENGTH) {
             name.take(MAX_PRODUCT_NAME_LENGTH)
         } else name
-        _state.update { it.copy(productName = capped, productNameError = null) }
+        updateState { it.copy(productName = capped, productNameError = null) }
     }
 
     fun onCategoryChanged(category: WarrantyCategory) {
-        _state.update { it.copy(category = category) }
+        updateState { it.copy(category = category) }
     }
 
     fun onStoreChanged(store: String) {
-        _state.update { it.copy(store = store) }
+        updateState { it.copy(store = store) }
     }
 
     fun onPriceChanged(price: String) {
-        _state.update { it.copy(price = price) }
+        updateState { it.copy(price = price) }
     }
 
     fun onPurchaseDateChanged(date: LocalDate) {
-        _state.update { it.copy(purchaseDate = date, purchaseDateError = null) }
+        updateState { it.copy(purchaseDate = date, purchaseDateError = null) }
         validateAndRecalculate()
     }
 
     fun onWarrantyMonthsChanged(months: String) {
         // Limita la longitud antes de procesar para evitar overflow de Long.
         val trimmed = months.take(MAX_INPUT_DIGITS).filter { it.isDigit() }
-        _state.update { it.copy(warrantyMonths = trimmed) }
+        updateState { it.copy(warrantyMonths = trimmed) }
         validateAndRecalculate()
     }
 
     fun onIsYearsChanged(isYears: Boolean) {
-        _state.update { it.copy(isYears = isYears) }
+        updateState { it.copy(isYears = isYears) }
         validateAndRecalculate()
     }
 
     fun onPhotoChanged(path: String?) {
-        _state.update { it.copy(receiptPhotoPath = path) }
+        updateState { it.copy(receiptPhotoPath = path) }
+    }
+
+    /**
+     * Copia la foto elegida fuera del hilo principal.
+     *
+     * El callback del photo picker corre en el hilo de UI, y con un URI de Google Photos
+     * que solo existe en la nube la copia se descarga por red en ese momento: la pantalla
+     * se congelaba varios segundos, con riesgo de ANR. Va en `viewModelScope` para que
+     * girar la pantalla a media copia no la cancele.
+     */
+    fun onPhotoPicked(uri: Uri, copyToInternal: (Uri) -> String?) {
+        if (_state.value.isPhotoLoading) return
+        updateState { it.copy(isPhotoLoading = true) }
+        viewModelScope.launch {
+            val path = withContext(Dispatchers.IO) { copyToInternal(uri) }
+            updateState {
+                // Una copia fallida deja la foto anterior, no la borra.
+                it.copy(isPhotoLoading = false, receiptPhotoPath = path ?: it.receiptPhotoPath)
+            }
+        }
     }
 
     fun onNotesChanged(notes: String) {
-        _state.update { it.copy(notes = notes) }
+        updateState { it.copy(notes = notes) }
     }
 
     private fun validateAndRecalculate() {
@@ -152,7 +210,7 @@ class AddEditViewModel(
             null
         }
 
-        _state.update { it.copy(warrantyMonthsError = error, warrantyEndDate = newEndDate) }
+        updateState { it.copy(warrantyMonthsError = error, warrantyEndDate = newEndDate) }
     }
 
     fun onSave() {
@@ -163,23 +221,23 @@ class AddEditViewModel(
         if (current.isSaving || current.isSaved) return
 
         if (current.productName.isBlank()) {
-            _state.update { it.copy(productNameError = AddEditError.NameRequired) }
+            updateState { it.copy(productNameError = AddEditError.NameRequired) }
             return
         }
         if (current.purchaseDate == null) {
-            _state.update { it.copy(purchaseDateError = AddEditError.DateRequired) }
+            updateState { it.copy(purchaseDateError = AddEditError.DateRequired) }
             return
         }
         if (current.warrantyEndDate == null) {
-            _state.update { it.copy(warrantyMonthsError = AddEditError.DurationRequired) }
+            updateState { it.copy(warrantyMonthsError = AddEditError.DurationRequired) }
             return
         }
         if (!current.isEditMode && !current.canAdd) {
-            _state.update { it.copy(formError = AddEditError.PremiumLimit) }
+            updateState { it.copy(formError = AddEditError.PremiumLimit) }
             return
         }
 
-        _state.update { it.copy(isSaving = true) }
+        updateState { it.copy(isSaving = true) }
 
         viewModelScope.launch {
             val warranty = Warranty(
@@ -191,7 +249,8 @@ class AddEditViewModel(
                 purchaseDate = current.purchaseDate,
                 warrantyEndDate = current.warrantyEndDate,
                 receiptPhotoPath = current.receiptPhotoPath,
-                notes = current.notes.trim()
+                notes = current.notes.trim(),
+                createdAt = current.createdAt ?: LocalDateTime.now()
             )
 
             val result = if (current.isEditMode) {
@@ -201,9 +260,14 @@ class AddEditViewModel(
             }
 
             when (result) {
-                is Result.Success -> _state.update { it.copy(isSaving = false, isSaved = true) }
-                is Result.Error -> _state.update {
-                    it.copy(isSaving = false, error = result.exception.message)
+                is Result.Success -> updateState { it.copy(isSaving = false, isSaved = true) }
+                // El tope del plan gratuito se revalida al insertar, así que puede llegar
+                // aquí aunque la pantalla se abriera con hueco disponible. Se muestra
+                // como el error localizable de siempre, no como texto crudo.
+                is Result.Error -> if (result.exception is PremiumLimitReachedException) {
+                    updateState { it.copy(isSaving = false, formError = AddEditError.PremiumLimit) }
+                } else {
+                    updateState { it.copy(isSaving = false, error = result.exception.message) }
                 }
             }
         }
@@ -214,16 +278,75 @@ class AddEditViewModel(
      * y el snackbar no volvería a salir si el usuario repite la misma acción fallida.
      */
     fun onErrorShown() {
-        _state.update { it.copy(error = null) }
+        updateState { it.copy(error = null) }
     }
 
     fun onFormErrorShown() {
-        _state.update { it.copy(formError = null) }
+        updateState { it.copy(formError = null) }
+    }
+
+    /**
+     * Solo se respaldan los campos que el usuario ha tecleado. `isSaving` / `isSaved` son
+     * transitorios: restaurarlos dejaría el formulario bloqueado o navegaría solo.
+     */
+    private fun saveDraft(state: AddEditState) {
+        val handle = savedStateHandle ?: return
+        handle[KEY_HAS_DRAFT] = true
+        handle[KEY_EDIT_MODE] = state.isEditMode
+        handle[KEY_PRODUCT_NAME] = state.productName
+        handle[KEY_CATEGORY] = state.category.name
+        handle[KEY_STORE] = state.store
+        handle[KEY_PRICE] = state.price
+        handle[KEY_PURCHASE_DATE] = state.purchaseDate?.toEpochDay() ?: NO_DATE
+        handle[KEY_MONTHS] = state.warrantyMonths
+        handle[KEY_IS_YEARS] = state.isYears
+        handle[KEY_PHOTO] = state.receiptPhotoPath
+        handle[KEY_NOTES] = state.notes
+        handle[KEY_CREATED_AT] = state.createdAt?.toString()
+    }
+
+    private fun restoreDraft(): AddEditState? {
+        val handle = savedStateHandle ?: return null
+        if (handle.get<Boolean>(KEY_HAS_DRAFT) != true) return null
+
+        val purchaseEpochDay = handle.get<Long>(KEY_PURCHASE_DATE) ?: NO_DATE
+        return AddEditState(
+            isEditMode = handle.get<Boolean>(KEY_EDIT_MODE) ?: false,
+            productName = handle.get<String>(KEY_PRODUCT_NAME).orEmpty(),
+            category = handle.get<String>(KEY_CATEGORY)
+                ?.let { name -> WarrantyCategory.entries.firstOrNull { it.name == name } }
+                ?: WarrantyCategory.ELECTRONICS,
+            store = handle.get<String>(KEY_STORE).orEmpty(),
+            price = handle.get<String>(KEY_PRICE).orEmpty(),
+            purchaseDate = purchaseEpochDay.takeIf { it != NO_DATE }?.let(LocalDate::ofEpochDay),
+            warrantyMonths = handle.get<String>(KEY_MONTHS).orEmpty(),
+            isYears = handle.get<Boolean>(KEY_IS_YEARS) ?: false,
+            receiptPhotoPath = handle.get<String>(KEY_PHOTO),
+            notes = handle.get<String>(KEY_NOTES).orEmpty(),
+            createdAt = handle.get<String>(KEY_CREATED_AT)
+                ?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
+        )
     }
 
     companion object {
         private const val MAX_WARRANTY_MONTHS = 600L // 50 años
         private const val MAX_INPUT_DIGITS = 4 // 9999 cabe sobrado en Long
         const val MAX_PRODUCT_NAME_LENGTH = 60
+
+        /** Centinela: SavedStateHandle no distingue "sin fecha" de un epochDay legítimo. */
+        private const val NO_DATE = Long.MIN_VALUE
+
+        private const val KEY_HAS_DRAFT = "draft_present"
+        private const val KEY_EDIT_MODE = "draft_edit_mode"
+        private const val KEY_PRODUCT_NAME = "draft_product_name"
+        private const val KEY_CATEGORY = "draft_category"
+        private const val KEY_STORE = "draft_store"
+        private const val KEY_PRICE = "draft_price"
+        private const val KEY_PURCHASE_DATE = "draft_purchase_date"
+        private const val KEY_MONTHS = "draft_months"
+        private const val KEY_IS_YEARS = "draft_is_years"
+        private const val KEY_PHOTO = "draft_photo"
+        private const val KEY_NOTES = "draft_notes"
+        private const val KEY_CREATED_AT = "draft_created_at"
     }
 }

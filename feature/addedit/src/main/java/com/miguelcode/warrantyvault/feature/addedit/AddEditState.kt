@@ -2,6 +2,7 @@ package com.miguelcode.warrantyvault.feature.addedit
 
 import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 enum class AddEditError {
     NameRequired,
@@ -31,7 +32,15 @@ data class AddEditState(
     val isYears: Boolean = false,
     val warrantyEndDate: LocalDate? = null,
     val receiptPhotoPath: String? = null,
+    /** La copia de la foto al almacenamiento interno está en curso. */
+    val isPhotoLoading: Boolean = false,
     val notes: String = "",
+    /**
+     * Fecha de creación original al editar. Null en alta: `onSave` la sella entonces.
+     * Sin conservarla, el @Update de Room la sobrescribía con la fecha actual en cada
+     * edición y el dato original se perdía sin posible recuperación.
+     */
+    val createdAt: LocalDateTime? = null,
     /** Error genérico (ej. fallo del use case). Se muestra crudo, no se localiza. */
     val error: String? = null,
     /** Error de formulario localizable (ej. límite premium alcanzado). */

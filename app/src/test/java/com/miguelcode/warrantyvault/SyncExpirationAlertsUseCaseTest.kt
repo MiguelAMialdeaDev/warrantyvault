@@ -53,21 +53,22 @@ class SyncExpirationAlertsUseCaseTest {
     }
 
     @Test
-    fun `cancels all alerts before scheduling anything`() = runTest {
+    fun `does not wipe the queue when notifications are enabled`() = runTest {
+        // Borrar y reprogramar en cada arranque perdía el aviso del día en curso: el
+        // worker encolado para hoy que aún no había corrido se cancelaba, y al
+        // reprogramarlo su instante ya había pasado y se descartaba.
         val active = warranty(1, LocalDate.now().plusMonths(6))
         givenNotificationsEnabled(true)
         givenWarranties(active)
 
         useCase()
 
-        verifyOrder {
-            notificationScheduler.cancelAll()
-            notificationScheduler.scheduleExpirationAlerts(active)
-        }
+        verify(exactly = 0) { notificationScheduler.cancelAll() }
+        verify(exactly = 1) { notificationScheduler.scheduleExpirationAlerts(active) }
     }
 
     @Test
-    fun `cancels all alerts even when notifications are disabled`() = runTest {
+    fun `cancels all alerts when notifications are disabled`() = runTest {
         givenNotificationsEnabled(false)
         givenWarranties(warranty(1, LocalDate.now().plusMonths(6)))
 
@@ -77,13 +78,13 @@ class SyncExpirationAlertsUseCaseTest {
     }
 
     @Test
-    fun `cancels all alerts even when there are no warranties`() = runTest {
+    fun `does not wipe the queue when there are no warranties`() = runTest {
         givenNotificationsEnabled(true)
         givenWarranties()
 
         useCase()
 
-        verify(exactly = 1) { notificationScheduler.cancelAll() }
+        verify(exactly = 0) { notificationScheduler.cancelAll() }
     }
 
     @Test
@@ -156,7 +157,9 @@ class SyncExpirationAlertsUseCaseTest {
     }
 
     @Test
-    fun `two consecutive runs cancel all twice and reschedule the same warranty twice`() = runTest {
+    fun `two consecutive runs reschedule without wiping the queue`() = runTest {
+        // Se puede llamar en cada arranque sin acumular duplicados porque el scheduler
+        // encola trabajo único por (garantía, aviso), no porque borre lo anterior.
         val active = warranty(1, LocalDate.now().plusMonths(6))
         givenNotificationsEnabled(true)
         givenWarranties(active)
@@ -164,24 +167,23 @@ class SyncExpirationAlertsUseCaseTest {
         useCase()
         useCase()
 
-        verify(exactly = 2) { notificationScheduler.cancelAll() }
+        verify(exactly = 0) { notificationScheduler.cancelAll() }
         verify(exactly = 2) { notificationScheduler.scheduleExpirationAlerts(active) }
     }
 
     @Test
-    fun `each run starts by wiping the queue so no duplicates can pile up`() = runTest {
+    fun `turning notifications off after a sync wipes the queue`() = runTest {
         val active = warranty(1, LocalDate.now().plusMonths(6))
-        givenNotificationsEnabled(true)
         givenWarranties(active)
 
+        givenNotificationsEnabled(true)
         useCase()
+        givenNotificationsEnabled(false)
         useCase()
 
         verifyOrder {
-            notificationScheduler.cancelAll()
             notificationScheduler.scheduleExpirationAlerts(active)
             notificationScheduler.cancelAll()
-            notificationScheduler.scheduleExpirationAlerts(active)
         }
     }
 

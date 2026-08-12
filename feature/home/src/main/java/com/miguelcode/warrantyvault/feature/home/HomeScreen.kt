@@ -38,6 +38,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -57,6 +58,10 @@ import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
+
+/** Tarjetas que entran escalonadas: aproximadamente las que caben en pantalla. */
+private const val STAGGERED_ITEMS = 6
+private const val STAGGER_STEP_MS = 40L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,14 +97,17 @@ private fun HomeScreenContent(
     onSearchQueryChanged: (String) -> Unit = {}
 ) {
     val listState = rememberLazyListState()
-    var searchActive by remember { mutableStateOf(false) }
+    /** Tarjetas que ya hicieron su animación de entrada; no se repite al reciclarlas. */
+    val animatedIds = remember { mutableSetOf<Long>() }
+    // rememberSaveable: con `remember`, al rotar volvía a false y el efecto de abajo
+    // borraba la query que sí había sobrevivido en el ViewModel. El usuario perdía la
+    // búsqueda entera a media escritura.
+    var searchActive by rememberSaveable { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
-    // Limpiar query cuando se desactiva búsqueda (o al volver de otra pantalla)
+    // La query se limpia en la acción explícita de cerrar la búsqueda, no aquí: reaccionar
+    // al valor inicial tras una recreación es justo lo que la borraba sin querer.
     LaunchedEffect(searchActive) {
-        if (!searchActive && state.searchQuery.isNotEmpty()) {
-            onSearchQueryChanged("")
-        }
         if (searchActive) {
             focusRequester.requestFocus()
         }
@@ -240,10 +248,20 @@ private fun HomeScreenContent(
                     key = { it.id }
                 ) { warranty ->
                     val index = state.filteredWarranties.indexOf(warranty)
-                    var visible by remember { mutableStateOf(false) }
-                    LaunchedEffect(Unit) {
-                        delay(index * 40L)
-                        visible = true
+                    // El escalonado se aplica solo a las tarjetas del primer viewport y
+                    // solo la primera vez que aparecen. Con el índice absoluto y
+                    // LaunchedEffect(Unit), una tarjeta profunda esperaba su delay
+                    // completo cada vez que volvía a pantalla, y mientras tanto
+                    // AnimatedVisibility no ocupaba altura: la lista daba saltos al
+                    // hacer scroll y las tarjetas tardaban segundos en verse.
+                    val staggered = index < STAGGERED_ITEMS && warranty.id !in animatedIds
+                    var visible by remember(warranty.id) { mutableStateOf(!staggered) }
+                    LaunchedEffect(warranty.id) {
+                        if (!visible) {
+                            delay(index * STAGGER_STEP_MS)
+                            visible = true
+                        }
+                        animatedIds += warranty.id
                     }
                     AnimatedVisibility(
                         visible = visible,

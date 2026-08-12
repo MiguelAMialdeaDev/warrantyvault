@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Variante oscura del tema de ventana. Compose pinta su propio fondo, pero la ventana se
+  crea antes de la primera composición: con el tema Light de la plataforma como único
+  tema, cada arranque en frío con el sistema en oscuro mostraba un frame blanco, bien
+  visible durante el splash vacío que espera a DataStore.
+-->
+<resources>
+    <style name="Theme.WarrantyVault" parent="android:Theme.Material.NoActionBar" />
+</resources>

@@ -7,5 +7,7 @@ data class DetailState(
     val warranty: Warranty? = null,
     val isDeleting: Boolean = false,
     val isDeleted: Boolean = false,
+    /** El id pedido no existe: nunca llegó a cargarse ninguna garantía. */
+    val notFound: Boolean = false,
     val error: String? = null
 )

@@ -26,6 +26,9 @@ fun AppNavGraph(
             OnboardingScreen(onFinish = {
                 navController.navigate(Screen.Home.route) {
                     popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    // Segunda red bajo la guarda del ViewModel: si aun así llegaran dos
+                    // navegaciones, la segunda no apila un Home duplicado.
+                    launchSingleTop = true
                 }
             })
         }

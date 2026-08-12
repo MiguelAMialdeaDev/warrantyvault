@@ -4,6 +4,7 @@
     <string name="detail_action_edit">Editar</string>
     <string name="detail_action_delete">Eliminar</string>
     <string name="detail_photo_ticket">Foto del ticket</string>
+    <string name="detail_not_found">Esta garantía ya no existe.</string>
 
     <string name="detail_purchased_on">Comprado %1$s</string>
     <string name="detail_expires_on">Expira %1$s</string>

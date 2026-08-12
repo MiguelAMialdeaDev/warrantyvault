@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,11 +31,26 @@ import com.miguelcode.warrantyvault.feature.addedit.R
 fun PhotoPickerBox(
     photoPath: String?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false
 ) {
     val shape = RoundedCornerShape(16.dp)
 
-    if (photoPath != null) {
+    if (isLoading) {
+        // Copiar una foto que solo está en la nube tarda: sin este indicador la pantalla
+        // parecía no responder al elegirla.
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(160.dp)
+                .padding(horizontal = 16.dp)
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else if (photoPath != null) {
         AsyncImage(
             model = photoPath,
             contentDescription = stringResource(R.string.addedit_photo_ticket),

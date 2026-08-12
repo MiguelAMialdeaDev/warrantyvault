@@ -13,9 +13,17 @@ class AddWarrantyUseCase(
     private val repository: WarrantyRepository,
     private val notificationScheduler: NotificationScheduler,
     private val preferencesRepository: PreferencesRepository,
-    private val analytics: AnalyticsTracker
+    private val analytics: AnalyticsTracker,
+    private val checkPremiumLimitUseCase: CheckPremiumLimitUseCase
 ) {
     suspend operator fun invoke(warranty: Warranty): Result<Long> {
+        // El límite se comprobaba solo al abrir la pantalla y se congelaba en el estado.
+        // Entre abrirla y guardar el usuario puede haber perdido premium (lo detecta
+        // refreshPurchases al volver de Google Play), así que se revalida al escribir.
+        if (!checkPremiumLimitUseCase()) {
+            return Result.Error(PremiumLimitReachedException())
+        }
+
         val result = repository.addWarranty(warranty)
         if (result is Result.Success) {
             // Respeta el interruptor de Ajustes: antes se programaban alertas aunque el

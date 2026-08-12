@@ -75,6 +75,11 @@ fun SettingsScreen(
 
     // Pide el permiso del sistema cuando el usuario intenta activar el toggle.
     // Si lo concede → preferencia local a true. Si lo deniega → snackbar con CTA a Ajustes.
+    // Se resuelven en composición porque showSnackbar corre fuera de ella. Estaban como
+    // literales en español: un usuario con el móvil en inglés veía toda la app traducida
+    // menos justo el mensaje que le explica cómo recuperar los avisos.
+    val permissionDeniedMessage = stringResource(R.string.settings_permission_denied)
+    val openSettingsLabel = stringResource(R.string.settings_open_settings)
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -83,8 +88,8 @@ fun SettingsScreen(
         } else {
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = "Permiso denegado. Actívalo desde Ajustes para recibir avisos.",
-                    actionLabel = "Abrir Ajustes",
+                    message = permissionDeniedMessage,
+                    actionLabel = openSettingsLabel,
                     withDismissAction = true
                 )
                 if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {

@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import com.miguelcode.warrantyvault.feature.addedit.R
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,8 +57,11 @@ fun DatePickerField(
     )
 
     if (showDialog) {
+        // El DatePicker de Material3 interpreta y devuelve los millis SIEMPRE en UTC.
+        // Convertir con la zona del dispositivo desplaza la fecha un día en cualquier
+        // zona distinta de UTC (hacia atrás al reabrir en UTC+, al guardar en UTC-).
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = date?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+            initialSelectedDateMillis = date?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
         )
         DatePickerDialog(
             onDismissRequest = { showDialog = false },
@@ -66,7 +69,7 @@ fun DatePickerField(
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
                         val selected = Instant.ofEpochMilli(millis)
-                            .atZone(ZoneId.systemDefault())
+                            .atZone(ZoneOffset.UTC)
                             .toLocalDate()
                         onDateSelected(selected)
                     }

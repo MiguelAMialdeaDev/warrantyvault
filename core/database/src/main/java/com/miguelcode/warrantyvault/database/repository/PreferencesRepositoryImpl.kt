@@ -1,35 +1,65 @@
 package com.miguelcode.warrantyvault.database.repository
 
 import android.content.Context
+import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "warranty_vault_prefs")
 
 class PreferencesRepositoryImpl(private val context: Context) : PreferencesRepository {
 
+    /**
+     * `dataStore.data` lanza IOException si el fichero no se puede leer y
+     * CorruptionException si no deserializa, y el contrato de DataStore es que lo capture
+     * el consumidor. Sin este `catch`, un fichero de preferencias corrupto propagaba la
+     * excepción a todos los colectores: la app quedaba en un crash loop nada más arrancar
+     * y solo se salía borrando los datos. Volviendo a valores por defecto, como mucho se
+     * pierden las preferencias.
+     */
+    private val safeData: Flow<Preferences>
+        get() = context.dataStore.data.catch { e ->
+            if (e is IOException) emit(emptyPreferences()) else throw e
+        }
+
     override val isPremiumFlow: Flow<Boolean>
-        get() = context.dataStore.data.map { it[KEY_IS_PREMIUM] ?: false }
+        get() = safeData.map { it[KEY_IS_PREMIUM] ?: false }
 
     override val isOnboardingDoneFlow: Flow<Boolean>
-        get() = context.dataStore.data.map { it[KEY_ONBOARDING_DONE] ?: false }
+        get() = safeData.map { it[KEY_ONBOARDING_DONE] ?: false }
 
     override val themeModeFlow: Flow<String>
-        get() = context.dataStore.data.map { it[KEY_THEME_MODE] ?: "system" }
+        get() = safeData.map { it[KEY_THEME_MODE] ?: "system" }
 
     override val notificationsEnabledFlow: Flow<Boolean>
-        get() = context.dataStore.data.map { it[KEY_NOTIFICATIONS_ENABLED] ?: false }
+        get() = safeData.map { it[KEY_NOTIFICATIONS_ENABLED] ?: notificationsDefault }
+
+    /**
+     * Por debajo de API 33 no existe el permiso runtime de notificaciones: el sistema las
+     * concede de serie y no hay diálogo cuyo resultado ponga la preferencia a true. Con un
+     * default en false, las alertas de vencimiento (la función central de la app) quedaban
+     * apagadas para siempre en todo Android 8.0-12 salvo que el usuario descubriese el
+     * interruptor de Ajustes. En API 33+ el default sigue siendo false: manda el permiso.
+     *
+     * Solo es el valor por defecto; en cuanto el usuario toca el interruptor, gana lo
+     * guardado.
+     */
+    private val notificationsDefault: Boolean
+        get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
 
     override suspend fun isPremium(): Boolean =
-        context.dataStore.data.first()[KEY_IS_PREMIUM] ?: false
+        safeData.first()[KEY_IS_PREMIUM] ?: false
 
     override suspend fun setIsPremium(value: Boolean) {
         context.dataStore.edit { it[KEY_IS_PREMIUM] = value }

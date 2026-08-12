@@ -21,6 +21,7 @@ import com.miguelcode.warrantyvault.billing.BillingManager
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.notification.NotificationScheduler
 import com.miguelcode.warrantyvault.domain.storage.PhotoFileCleaner
+import com.miguelcode.warrantyvault.notifications.DeliveredAlertsStore
 import com.miguelcode.warrantyvault.notifications.NotificationSchedulerImpl
 import com.miguelcode.warrantyvault.storage.PhotoFileCleanerImpl
 import com.miguelcode.warrantyvault.feature.addedit.AddEditViewModel
@@ -52,7 +53,8 @@ val repositoryModule = module {
     single<WarrantyRepository> { WarrantyRepositoryImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(androidContext()) }
     single<BillingManagerContract> { BillingManager(androidContext(), get()) }
-    single<NotificationScheduler> { NotificationSchedulerImpl(androidContext()) }
+    single { DeliveredAlertsStore(androidContext()) }
+    single<NotificationScheduler> { NotificationSchedulerImpl(androidContext(), get()) }
     single<PhotoFileCleaner> { PhotoFileCleanerImpl() }
     // Cuando esté `app/google-services.json`, cambiar a FirebaseAnalyticsTracker.
     single<AnalyticsTracker> { NoOpAnalyticsTracker() }
@@ -61,7 +63,7 @@ val repositoryModule = module {
 val useCaseModule = module {
     factory { GetWarrantiesUseCase(get()) }
     factory { GetWarrantyByIdUseCase(get()) }
-    factory { AddWarrantyUseCase(get(), get(), get(), get()) }
+    factory { AddWarrantyUseCase(get(), get(), get(), get(), get()) }
     factory { UpdateWarrantyUseCase(get(), get(), get(), get(), get()) }
     factory { DeleteWarrantyUseCase(get(), get(), get(), get()) }
     factory { CheckPremiumLimitUseCase(get(), get()) }
@@ -83,7 +85,11 @@ val viewModelModule = module {
             getWarrantyByIdUseCase = get(),
             addWarrantyUseCase = get(),
             updateWarrantyUseCase = get(),
-            checkPremiumLimitUseCase = get()
+            checkPremiumLimitUseCase = get(),
+            // Koin lo construye desde los CreationExtras del ViewModel, no de una
+            // definición del módulo. Es lo que permite recuperar el formulario cuando
+            // el sistema mata el proceso con la pantalla abierta.
+            savedStateHandle = parameters.getOrNull()
         )
     }
     viewModel { OnboardingViewModel(get(), get()) }

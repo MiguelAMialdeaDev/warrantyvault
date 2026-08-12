@@ -150,6 +150,16 @@ fun DetailScreen(
                     )
                 }
             }
+            // Sin esta rama, un id inexistente dejaba la pantalla vacía: ni título, ni
+            // mensaje, ni acciones, y solo se salía con el botón atrás.
+            else -> {
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.detail_not_found),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 }

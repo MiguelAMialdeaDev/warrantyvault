@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.miguelcode.warrantyvault.feature.onboarding"
-    compileSdk = 34
+    compileSdk = 35
     defaultConfig { minSdk = 26 }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

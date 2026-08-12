@@ -7,6 +7,7 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
@@ -55,6 +56,7 @@ class BillingManager(
     /** Evita lanzar dos startConnection a la vez desde connect() y desde el backoff. */
     private var connecting = false
     private var reconnectAttempts = 0
+    private var productQueryAttempts = 0
 
     private val purchasesListener = PurchasesUpdatedListener { billingResult, purchases ->
         when (billingResult.responseCode) {
@@ -78,7 +80,15 @@ class BillingManager(
 
     private val billingClient = BillingClient.newBuilder(appContext)
         .setListener(purchasesListener)
-        .enablePendingPurchases()
+        // Desde Billing 7 hay que declarar explícitamente el soporte de compras
+        // pendientes. `enableOneTimeProducts()` no es opcional: sin él, el build() de
+        // PendingPurchasesParams lanza IllegalArgumentException. No se activan los planes
+        // prepago porque la app solo vende suscripciones recurrentes.
+        .enablePendingPurchases(
+            PendingPurchasesParams.newBuilder()
+                .enableOneTimeProducts()
+                .build()
+        )
         .build()
 
     override fun connect() {
@@ -132,7 +142,15 @@ class BillingManager(
             connect()
             return
         }
-        scope.launch { checkExistingPurchases() }
+        scope.launch {
+            // Segunda vía de recuperación: si la consulta de productos falló al conectar,
+            // volver a primer plano la reintenta en vez de arrastrar la sesión sin precios.
+            if (products.value.isEmpty()) {
+                productQueryAttempts = 0
+                queryProducts()
+            }
+            checkExistingPurchases()
+        }
     }
 
     override fun clearError() {
@@ -167,6 +185,15 @@ class BillingManager(
             _prices.value = details.mapNotNull { (id, product) ->
                 product.recurringPrice()?.let { id to it }
             }.toMap()
+            productQueryAttempts = 0
+        } else if (productQueryAttempts < MAX_PRODUCT_QUERY_ATTEMPTS) {
+            // Sin reintento, un fallo de red puntual dejaba la pantalla Premium sin
+            // precios el resto de la sesión: el botón de compra se quedaba deshabilitado
+            // en "cargando" sin error ni forma de recuperarse.
+            val delayMs = PRODUCT_QUERY_BASE_DELAY_MS shl productQueryAttempts
+            productQueryAttempts++
+            delay(delayMs)
+            queryProducts()
         }
     }
 
@@ -176,12 +203,12 @@ class BillingManager(
      * mostraría "0 €" como precio del plan.
      */
     private fun ProductDetails.recurringPrice(): SubscriptionPrice? {
-        val phase = subscriptionOfferDetails
+        val phases = subscriptionOfferDetails
             ?.firstOrNull()
             ?.pricingPhases
             ?.pricingPhaseList
-            ?.lastOrNull()
             ?: return null
+        val phase = BillingRules.recurringPhase(phases) ?: return null
         return SubscriptionPrice(
             formatted = phase.formattedPrice,
             amountMicros = phase.priceAmountMicros
@@ -203,19 +230,15 @@ class BillingManager(
         // antes que revocarle premium a alguien por un fallo de red o de servicio.
         if (result.first.responseCode != BillingClient.BillingResponseCode.OK) return
 
-        val active = result.second.filter {
-            it.purchaseState == Purchase.PurchaseState.PURCHASED
-        }
-
         // Reintenta el acknowledge de compras que quedaron a medias en sesiones
         // anteriores. Play reembolsa automáticamente a las 72 h toda compra que nunca
         // se confirma, así que este barrido en cada arranque es la última red de seguridad.
-        active.filterNot { it.isAcknowledged }.forEach { acknowledgeWithRetry(it) }
+        BillingRules.needingAcknowledgement(result.second).forEach { acknowledgeWithRetry(it) }
 
         // Aquí está la revocación: si Play ya no devuelve la suscripción (cancelada,
         // caducada, reembolsada) el flag local baja a false. Y si la devuelve tras
         // reinstalar o cambiar de móvil, se restaura sola.
-        val hasPremium = active.isNotEmpty()
+        val hasPremium = BillingRules.hasPremium(result.second)
         preferencesRepository.setIsPremium(hasPremium)
         _stateCode.value = if (hasPremium) STATE_PURCHASED else STATE_IDLE
     }
@@ -280,7 +303,6 @@ class BillingManager(
                 .setPurchaseToken(purchase.purchaseToken)
                 .build()
 
-            var delayMs = ACK_BASE_DELAY_MS
             repeat(ACK_MAX_ATTEMPTS) { attempt ->
                 val result = suspendCancellableCoroutine { cont ->
                     billingClient.acknowledgePurchase(params) { cont.resume(it) }
@@ -289,9 +311,10 @@ class BillingManager(
                     grantPremium()
                     return@launch
                 }
+                // Backoff derivado del intento, igual que en la reconexión. Con un `var`
+                // acumulador el compilador avisaba de que no se leía.
                 if (attempt < ACK_MAX_ATTEMPTS - 1) {
-                    delay(delayMs)
-                    delayMs *= 2
+                    delay(ACK_BASE_DELAY_MS shl attempt)
                 }
             }
 
@@ -335,6 +358,8 @@ class BillingManager(
     private companion object {
         const val MAX_RECONNECT_ATTEMPTS = 5
         const val RECONNECT_BASE_DELAY_MS = 1_000L
+        const val MAX_PRODUCT_QUERY_ATTEMPTS = 3
+        const val PRODUCT_QUERY_BASE_DELAY_MS = 1_000L
         const val ACK_MAX_ATTEMPTS = 4
         const val ACK_BASE_DELAY_MS = 1_000L
     }

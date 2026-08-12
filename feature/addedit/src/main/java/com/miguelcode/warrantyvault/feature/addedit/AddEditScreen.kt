@@ -90,13 +90,13 @@ fun AddEditScreen(
         viewModel.onSave()
     }
 
+    // El contexto de aplicación evita retener la Activity mientras dura la copia.
+    val appContext = remember(context) { context.applicationContext }
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        uri?.let {
-            val savedPath = PhotoStorage.copyToInternal(context, it)
-            if (savedPath != null) viewModel.onPhotoChanged(savedPath)
-        }
+        // La copia la hace el ViewModel en Dispatchers.IO: aquí estamos en el hilo de UI.
+        uri?.let { viewModel.onPhotoPicked(it) { source -> PhotoStorage.copyToInternal(appContext, source) } }
     }
 
     LaunchedEffect(state.isSaved) {
@@ -172,6 +172,7 @@ fun AddEditScreen(
             // Photo
             PhotoPickerBox(
                 photoPath = state.receiptPhotoPath,
+                isLoading = state.isPhotoLoading,
                 onClick = {
                     photoPickerLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)

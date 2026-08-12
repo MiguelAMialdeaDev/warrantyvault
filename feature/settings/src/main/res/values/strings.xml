@@ -16,4 +16,6 @@
     <string name="settings_notifications_reminders">Recordatorios de vencimiento</string>
     <string name="settings_app">App</string>
     <string name="settings_version">Versión 1.0.0</string>
+    <string name="settings_permission_denied">Permiso denegado. Actívalo desde Ajustes para recibir avisos.</string>
+    <string name="settings_open_settings">Abrir Ajustes</string>
 </resources>

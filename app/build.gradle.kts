@@ -5,12 +5,15 @@ plugins {
 
 android {
     namespace = "com.miguelcode.warrantyvault"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.miguelcode.warrantyvault"
         minSdk = 26
-        targetSdk = 34
+        // API 35 es el mínimo que Google Play acepta para publicar. Targetear 35 activa
+        // el edge-to-edge obligatorio de Android 15: la app ya llama a enableEdgeToEdge(),
+        // pero hay que revisar que ninguna pantalla quede bajo las barras del sistema.
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -100,8 +103,9 @@ dependencies {
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    // Billing
-    implementation("com.android.billingclient:billing-ktx:6.2.0")
+    // Billing. Google Play exige la 7 o superior para publicar: con la 6.x el AAB se
+    // rechaza al subirlo, igual que pasaba con targetSdk 34.
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
 
     // Tests
     testImplementation("junit:junit:4.13.2")

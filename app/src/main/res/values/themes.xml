@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+      Tema por defecto: sigue al sistema gracias a values-night. MainActivity solo lo
+      sustituye por uno de los dos de abajo cuando el usuario ha forzado un modo concreto
+      desde Ajustes, que es el caso que values-night no puede cubrir.
+    -->
     <style name="Theme.WarrantyVault" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.WarrantyVault.Forced.Light" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.WarrantyVault.Forced.Dark" parent="android:Theme.Material.NoActionBar" />
 </resources>

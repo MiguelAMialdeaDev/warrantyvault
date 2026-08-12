@@ -16,4 +16,6 @@
     <string name="settings_notifications_reminders">Expiration reminders</string>
     <string name="settings_app">App</string>
     <string name="settings_version">Version 1.0.0</string>
+    <string name="settings_permission_denied">Permission denied. Turn it on in Settings to get reminders.</string>
+    <string name="settings_open_settings">Open Settings</string>
 </resources>

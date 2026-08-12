@@ -49,6 +49,21 @@ class PriceParsingTest {
     }
 
     @Test
+    fun `treats a lone dot before three digits as a thousands separator`() {
+        assertEquals(1299.0, "1.299".toPriceOrNull()!!, 0.001)
+    }
+
+    @Test
+    fun `treats repeated dots as thousands separators`() {
+        assertEquals(1299000.0, "1.299.000".toPriceOrNull()!!, 0.001)
+    }
+
+    @Test
+    fun `treats a lone dot before two digits as a decimal separator`() {
+        assertEquals(1.29, "1.29".toPriceOrNull()!!, 0.001)
+    }
+
+    @Test
     fun `ignores surrounding whitespace`() {
         assertEquals(49.9, "  49,9  ".toPriceOrNull()!!, 0.001)
     }

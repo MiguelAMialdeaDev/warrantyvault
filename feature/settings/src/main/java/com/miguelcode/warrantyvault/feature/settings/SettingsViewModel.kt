@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import com.miguelcode.warrantyvault.domain.usecase.SyncExpirationAlertsUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -23,6 +24,8 @@ class SettingsViewModel(
     val notificationsEnabled: StateFlow<Boolean> = preferencesRepository.notificationsEnabledFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    private var notificationsJob: Job? = null
+
     fun setThemeMode(mode: String) {
         viewModelScope.launch {
             preferencesRepository.setThemeMode(mode)
@@ -36,7 +39,11 @@ class SettingsViewModel(
      * recibiendo avisos que creía haber desactivado.
      */
     fun setNotificationsEnabled(enabled: Boolean) {
-        viewModelScope.launch {
+        // Cancelar el anterior evita que dos pulsaciones rápidas dejen el estado final
+        // decidido por cuál de las dos corrutinas termine antes, en vez de por la última
+        // pulsación del usuario.
+        notificationsJob?.cancel()
+        notificationsJob = viewModelScope.launch {
             preferencesRepository.setNotificationsEnabled(enabled)
             syncExpirationAlerts()
         }
