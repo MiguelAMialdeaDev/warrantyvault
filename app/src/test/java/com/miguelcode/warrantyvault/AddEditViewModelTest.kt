@@ -126,6 +126,72 @@ class AddEditViewModelTest {
     }
 
     @Test
+    fun `edit mode rebuilds the duration the user typed when the end date was clipped`() = runTest {
+        // 31/08 + 6 meses = 28/02: plusMonths recorta el día y MONTHS.between no revierte
+        // el recorte, así que devolvía 5. El campo mostraba una duración menor y, al
+        // recalcular, persistía un vencimiento un mes más corto que el real.
+        val warranty = warrantyEndingOn(
+            purchase = LocalDate.of(2025, 8, 31),
+            end = LocalDate.of(2026, 2, 28)
+        )
+        coEvery { getWarrantyByIdUseCase(5L) } returns Result.Success(warranty)
+
+        val vm = createViewModel(warrantyId = 5L)
+
+        vm.state.test {
+            val state = awaitItem()
+            assertEquals("6", state.warrantyMonths)
+            assertFalse(state.isYears)
+        }
+    }
+
+    @Test
+    fun `edit mode rebuilds a one month duration that was clipped to zero`() = runTest {
+        // 31/01 + 1 mes = 28/02. Aquí between devolvía 0, el campo mostraba 0 y el
+        // formulario se bloqueaba con el error de "debe ser positivo".
+        val warranty = warrantyEndingOn(
+            purchase = LocalDate.of(2026, 1, 31),
+            end = LocalDate.of(2026, 2, 28)
+        )
+        coEvery { getWarrantyByIdUseCase(5L) } returns Result.Success(warranty)
+
+        val vm = createViewModel(warrantyId = 5L)
+
+        vm.state.test {
+            val state = awaitItem()
+            assertEquals("1", state.warrantyMonths)
+            assertNull(state.warrantyMonthsError)
+        }
+    }
+
+    @Test
+    fun `edit mode keeps showing whole years as years`() = runTest {
+        val warranty = warrantyEndingOn(
+            purchase = LocalDate.of(2024, 1, 15),
+            end = LocalDate.of(2026, 1, 15)
+        )
+        coEvery { getWarrantyByIdUseCase(5L) } returns Result.Success(warranty)
+
+        val vm = createViewModel(warrantyId = 5L)
+
+        vm.state.test {
+            val state = awaitItem()
+            assertEquals("2", state.warrantyMonths)
+            assertTrue(state.isYears)
+        }
+    }
+
+    private fun warrantyEndingOn(purchase: LocalDate, end: LocalDate) = Warranty(
+        id = 5,
+        productName = "PS5",
+        category = WarrantyCategory.GAMING,
+        store = "MediaMarkt",
+        price = 549.0,
+        purchaseDate = purchase,
+        warrantyEndDate = end
+    )
+
+    @Test
     fun `validation fails on empty product name`() = runTest {
         coEvery { checkPremiumLimitUseCase() } returns true
 
