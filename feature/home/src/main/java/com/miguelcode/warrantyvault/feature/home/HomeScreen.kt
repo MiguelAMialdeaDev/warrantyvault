@@ -173,7 +173,8 @@ private fun HomeScreenContent(
                     icon = {
                         Icon(
                             imageVector = Icons.Outlined.Stars,
-                            contentDescription = null
+                            // Plegado solo queda el icono: sin etiqueta, TalkBack lo anunciaba como "botón" a secas.
+                            contentDescription = if (expandedFab) null else stringResource(R.string.home_fab_premium)
                         )
                     },
                     text = { Text(stringResource(R.string.home_fab_premium)) },
@@ -187,7 +188,7 @@ private fun HomeScreenContent(
                     icon = {
                         Icon(
                             imageVector = Icons.Outlined.Add,
-                            contentDescription = null
+                            contentDescription = if (expandedFab) null else stringResource(R.string.home_fab_add)
                         )
                     },
                     text = { Text(stringResource(R.string.home_fab_add)) },
