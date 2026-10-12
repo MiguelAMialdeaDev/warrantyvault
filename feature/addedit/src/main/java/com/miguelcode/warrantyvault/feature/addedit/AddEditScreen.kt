@@ -54,7 +54,7 @@ import com.miguelcode.warrantyvault.feature.addedit.components.DatePickerField
 import com.miguelcode.warrantyvault.feature.addedit.components.PhotoPickerBox
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import java.time.format.DateTimeFormatter
+import com.miguelcode.warrantyvault.ui.common.rememberDateFormatter
 
 /** Resuelve un error tipado a string localizable. */
 @Composable
@@ -276,7 +276,7 @@ fun AddEditScreen(
 
             // Calculated end date
             if (state.warrantyEndDate != null) {
-                val fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                val fmt = rememberDateFormatter()
                 Text(
                     text = stringResource(R.string.addedit_end_date_label, state.warrantyEndDate!!.format(fmt)),
                     style = MaterialTheme.typography.bodyMedium,

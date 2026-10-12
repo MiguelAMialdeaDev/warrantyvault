@@ -60,6 +60,7 @@ import com.miguelcode.warrantyvault.ui.theme.CategoryOtherBg
 import com.miguelcode.warrantyvault.ui.theme.CategoryOtherIcon
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
 import java.time.LocalDate
+import androidx.compose.ui.res.pluralStringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,9 +77,9 @@ fun WarrantyCard(
         }
     )
     val daysLabel = when {
-        warranty.daysRemaining > 0 -> stringResource(R.string.home_a11y_days_remaining, warranty.daysRemaining)
+        warranty.daysRemaining > 0 -> warranty.daysRemaining.toInt().let { pluralStringResource(R.plurals.home_a11y_days_remaining, it, it) }
         warranty.daysRemaining == 0L -> stringResource(R.string.home_a11y_expires_today)
-        else -> stringResource(R.string.home_a11y_expired_days, -warranty.daysRemaining)
+        else -> (-warranty.daysRemaining).toInt().let { pluralStringResource(R.plurals.home_a11y_expired_days, it, it) }
     }
     val categoryName = warranty.category.displayName()
     val cardContentDescription =

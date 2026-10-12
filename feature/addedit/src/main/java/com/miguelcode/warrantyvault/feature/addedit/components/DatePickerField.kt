@@ -23,7 +23,7 @@ import com.miguelcode.warrantyvault.feature.addedit.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
+import com.miguelcode.warrantyvault.ui.common.rememberDateFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +35,7 @@ fun DatePickerField(
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    val fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val fmt = rememberDateFormatter()
 
     OutlinedTextField(
         value = date?.format(fmt) ?: "",

@@ -31,9 +31,15 @@
     <string name="home_a11y_active">active</string>
     <string name="home_a11y_expiring">expiring soon</string>
     <string name="home_a11y_expired">expired</string>
-    <string name="home_a11y_days_remaining">%1$d days remaining</string>
+    <plurals name="home_a11y_days_remaining">
+        <item quantity="one">%1$d day remaining</item>
+        <item quantity="other">%1$d days remaining</item>
+    </plurals>
     <string name="home_a11y_expires_today">expires today</string>
-    <string name="home_a11y_expired_days">expired %1$d days ago</string>
+    <plurals name="home_a11y_expired_days">
+        <item quantity="one">expired %1$d day ago</item>
+        <item quantity="other">expired %1$d days ago</item>
+    </plurals>
 
     <string name="category_electronics">Electronics</string>
     <string name="category_appliance">Appliance</string>

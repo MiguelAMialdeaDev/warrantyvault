@@ -8,8 +8,14 @@
 
     <string name="detail_purchased_on">Comprado %1$s</string>
     <string name="detail_expires_on">Expira %1$s</string>
-    <string name="detail_days_remaining_label">días restantes</string>
-    <string name="detail_days_expired_label">días expirada</string>
+    <plurals name="detail_days_remaining_label">
+        <item quantity="one">día restante</item>
+        <item quantity="other">días restantes</item>
+    </plurals>
+    <plurals name="detail_days_expired_label">
+        <item quantity="one">día expirada</item>
+        <item quantity="other">días expirada</item>
+    </plurals>
 
     <string name="detail_info_store">Tienda</string>
     <string name="detail_info_price">Precio</string>
@@ -19,6 +25,12 @@
     <string name="detail_info_notes">Notas</string>
 
     <string name="detail_duration_year_one">1 año</string>
-    <string name="detail_duration_years">%1$d años</string>
-    <string name="detail_duration_months">%1$d meses</string>
+    <plurals name="detail_duration_years">
+        <item quantity="one">%1$d año</item>
+        <item quantity="other">%1$d años</item>
+    </plurals>
+    <plurals name="detail_duration_months">
+        <item quantity="one">%1$d mes</item>
+        <item quantity="other">%1$d meses</item>
+    </plurals>
 </resources>

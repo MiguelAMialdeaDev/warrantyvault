@@ -24,9 +24,10 @@ import com.miguelcode.warrantyvault.feature.detail.R
 import com.miguelcode.warrantyvault.ui.common.StatusBadge
 import com.miguelcode.warrantyvault.ui.common.WarrantyProgressBar
 import com.miguelcode.warrantyvault.ui.theme.*
-import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 import com.miguelcode.warrantyvault.ui.theme.LocalIsDarkTheme
+import com.miguelcode.warrantyvault.ui.common.rememberDateFormatter
+import androidx.compose.ui.res.pluralStringResource
 
 @Composable
 fun StatusSection(
@@ -39,7 +40,7 @@ fun StatusSection(
         WarrantyStatus.EXPIRING_SOON -> if (isDark) StatusExpiringTextDark else StatusExpiringText
         WarrantyStatus.EXPIRED -> if (isDark) StatusExpiredTextDark else StatusExpiredText
     }
-    val fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val fmt = rememberDateFormatter()
 
     Card(
         modifier = modifier
@@ -61,9 +62,10 @@ fun StatusSection(
                     color = daysColor
                 )
                 Text(
-                    text = stringResource(
-                        if (warranty.daysRemaining >= 0) R.string.detail_days_remaining_label
-                        else R.string.detail_days_expired_label
+                    text = pluralStringResource(
+                        if (warranty.daysRemaining >= 0) R.plurals.detail_days_remaining_label
+                        else R.plurals.detail_days_expired_label,
+                        abs(warranty.daysRemaining).toInt()
                     ),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)

@@ -31,20 +31,22 @@ import androidx.compose.ui.unit.dp
 import com.miguelcode.warrantyvault.domain.model.Warranty
 import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
 import com.miguelcode.warrantyvault.feature.detail.R
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import com.miguelcode.warrantyvault.ui.common.rememberDateFormatter
+import androidx.compose.ui.res.pluralStringResource
+import com.miguelcode.warrantyvault.domain.util.warrantyMonths
+import com.miguelcode.warrantyvault.ui.common.formatPrice
 
 @Composable
 fun InfoCard(
     warranty: Warranty,
     modifier: Modifier = Modifier
 ) {
-    val fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val totalMonths = ChronoUnit.MONTHS.between(warranty.purchaseDate, warranty.warrantyEndDate)
+    val fmt = rememberDateFormatter()
+    val totalMonths = warrantyMonths(warranty.purchaseDate, warranty.warrantyEndDate)
     val durationText = when {
         totalMonths == 12L -> stringResource(R.string.detail_duration_year_one)
-        totalMonths >= 12 && totalMonths % 12 == 0L -> stringResource(R.string.detail_duration_years, totalMonths / 12)
-        else -> stringResource(R.string.detail_duration_months, totalMonths)
+        totalMonths >= 12 && totalMonths % 12 == 0L -> (totalMonths / 12).toInt().let { pluralStringResource(R.plurals.detail_duration_years, it, it) }
+        else -> totalMonths.toInt().let { pluralStringResource(R.plurals.detail_duration_months, it, it) }
     }
 
     Card(
@@ -59,8 +61,8 @@ fun InfoCard(
                 InfoRow(icon = Icons.Outlined.Store, label = stringResource(R.string.detail_info_store), value = warranty.store)
                 InfoDivider()
             }
-            if (warranty.price != null) {
-                InfoRow(icon = Icons.Outlined.Euro, label = stringResource(R.string.detail_info_price), value = "€%.2f".format(warranty.price))
+            warranty.price?.let { price ->
+                InfoRow(icon = Icons.Outlined.Euro, label = stringResource(R.string.detail_info_price), value = formatPrice(price))
                 InfoDivider()
             }
             InfoRow(icon = Icons.Outlined.CalendarMonth, label = stringResource(R.string.detail_info_purchase_date), value = warranty.purchaseDate.format(fmt))

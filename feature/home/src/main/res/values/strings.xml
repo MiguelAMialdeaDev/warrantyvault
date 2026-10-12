@@ -32,9 +32,15 @@
     <string name="home_a11y_active">activa</string>
     <string name="home_a11y_expiring">por vencer</string>
     <string name="home_a11y_expired">expirada</string>
-    <string name="home_a11y_days_remaining">%1$d días restantes</string>
+    <plurals name="home_a11y_days_remaining">
+        <item quantity="one">%1$d día restante</item>
+        <item quantity="other">%1$d días restantes</item>
+    </plurals>
     <string name="home_a11y_expires_today">expira hoy</string>
-    <string name="home_a11y_expired_days">expiró hace %1$d días</string>
+    <plurals name="home_a11y_expired_days">
+        <item quantity="one">expiró hace %1$d día</item>
+        <item quantity="other">expiró hace %1$d días</item>
+    </plurals>
 
     <!-- Categorías (también usadas en WarrantyCard subtitle) -->
     <string name="category_electronics">Electrónica</string>
