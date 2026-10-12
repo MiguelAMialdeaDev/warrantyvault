@@ -1,6 +1,5 @@
 package com.miguelcode.warrantyvault.ui.common
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +16,7 @@ import com.miguelcode.warrantyvault.ui.theme.StatusExpiringText
 import com.miguelcode.warrantyvault.ui.theme.StatusExpiringTextDark
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
 import kotlin.math.abs
+import com.miguelcode.warrantyvault.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun DaysRemainingText(
@@ -24,7 +24,7 @@ fun DaysRemainingText(
     status: WarrantyStatus,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalIsDarkTheme.current
     val color = when (status) {
         WarrantyStatus.ACTIVE -> if (isDark) StatusActiveTextDark else StatusActiveText
         WarrantyStatus.EXPIRING_SOON -> if (isDark) StatusExpiringTextDark else StatusExpiringText

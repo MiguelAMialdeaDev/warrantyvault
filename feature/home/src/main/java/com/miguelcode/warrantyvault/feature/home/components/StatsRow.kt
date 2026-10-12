@@ -2,7 +2,6 @@ package com.miguelcode.warrantyvault.feature.home.components
 
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +30,7 @@ import com.miguelcode.warrantyvault.ui.theme.StatusExpiredTextDark
 import com.miguelcode.warrantyvault.ui.theme.StatusExpiringText
 import com.miguelcode.warrantyvault.ui.theme.StatusExpiringTextDark
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
+import com.miguelcode.warrantyvault.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun StatsRow(
@@ -39,7 +39,7 @@ fun StatsRow(
     expiredCount: Int,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalIsDarkTheme.current
 
     Row(
         modifier = modifier

@@ -2,9 +2,11 @@ package com.miguelcode.warrantyvault
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -67,6 +70,21 @@ class MainActivity : ComponentActivity() {
             // Deja el modo elegido donde el próximo arranque en frío pueda leerlo sin
             // esperar a DataStore, que es lo que causaba el destello.
             LaunchedEffect(themeMode) { ThemeModeCache.write(this@MainActivity, themeMode) }
+
+            // enableEdgeToEdge() a secas decide el color de los iconos de las barras con el
+            // tema del sistema: con "Oscuro" forzado y el sistema en claro, la hora y la
+            // batería salían en negro sobre el fondo oscuro de la app.
+            DisposableEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(
+                        Color.TRANSPARENT, Color.TRANSPARENT
+                    ) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(
+                        NAV_BAR_LIGHT_SCRIM, NAV_BAR_DARK_SCRIM
+                    ) { darkTheme }
+                )
+                onDispose { }
+            }
 
             WarrantyVaultTheme(darkTheme = darkTheme) {
                 // initial = null: hasta que DataStore emite el valor real, mostramos un splash
@@ -134,5 +152,12 @@ class MainActivity : ComponentActivity() {
         if (!granted) {
             lifecycleScope.launch { preferencesRepository.setNotificationsEnabled(false) }
         }
+    }
+
+    private companion object {
+        // Los mismos scrims que usa enableEdgeToEdge() por defecto para la barra de
+        // navegación con botones.
+        val NAV_BAR_LIGHT_SCRIM = Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
+        val NAV_BAR_DARK_SCRIM = Color.argb(0x80, 0x1b, 0x1b, 0x1b)
     }
 }

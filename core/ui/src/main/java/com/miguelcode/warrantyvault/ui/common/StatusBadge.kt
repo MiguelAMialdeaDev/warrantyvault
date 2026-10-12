@@ -1,7 +1,6 @@
 package com.miguelcode.warrantyvault.ui.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -29,13 +28,14 @@ import com.miguelcode.warrantyvault.ui.theme.StatusExpiringBgDark
 import com.miguelcode.warrantyvault.ui.theme.StatusExpiringText
 import com.miguelcode.warrantyvault.ui.theme.StatusExpiringTextDark
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
+import com.miguelcode.warrantyvault.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun StatusBadge(
     status: WarrantyStatus,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalIsDarkTheme.current
 
     val backgroundColor: Color
     val textColor: Color

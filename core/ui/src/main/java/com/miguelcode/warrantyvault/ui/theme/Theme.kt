@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
@@ -40,6 +42,14 @@ private val DarkColorScheme = darkColorScheme(
     onError = OnError
 )
 
+/**
+ * Si el tema aplicado es oscuro. Los componentes que eligen pares de color propios
+ * (estado, progreso, días restantes) tienen que leer esto y no `isSystemInDarkTheme()`:
+ * con el modo forzado desde Ajustes, el sistema y la app no coinciden, y pintaban
+ * colores claros sobre superficies oscuras (o al revés).
+ */
+val LocalIsDarkTheme = staticCompositionLocalOf { false }
+
 @Composable
 fun WarrantyVaultTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -47,10 +57,12 @@ fun WarrantyVaultTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    CompositionLocalProvider(LocalIsDarkTheme provides darkTheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
 }

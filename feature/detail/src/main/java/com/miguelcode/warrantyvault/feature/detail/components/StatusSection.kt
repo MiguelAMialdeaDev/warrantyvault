@@ -1,6 +1,5 @@
 package com.miguelcode.warrantyvault.feature.detail.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,13 +26,14 @@ import com.miguelcode.warrantyvault.ui.common.WarrantyProgressBar
 import com.miguelcode.warrantyvault.ui.theme.*
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
+import com.miguelcode.warrantyvault.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun StatusSection(
     warranty: Warranty,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalIsDarkTheme.current
     val daysColor = when (warranty.status) {
         WarrantyStatus.ACTIVE -> if (isDark) StatusActiveTextDark else StatusActiveText
         WarrantyStatus.EXPIRING_SOON -> if (isDark) StatusExpiringTextDark else StatusExpiringText

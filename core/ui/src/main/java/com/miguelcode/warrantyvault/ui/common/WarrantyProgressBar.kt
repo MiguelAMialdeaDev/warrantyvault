@@ -4,7 +4,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +25,7 @@ import com.miguelcode.warrantyvault.ui.theme.StatusExpiredTextDark
 import com.miguelcode.warrantyvault.ui.theme.StatusExpiringText
 import com.miguelcode.warrantyvault.ui.theme.StatusExpiringTextDark
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
+import com.miguelcode.warrantyvault.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun WarrantyProgressBar(
@@ -34,7 +34,7 @@ fun WarrantyProgressBar(
     modifier: Modifier = Modifier,
     height: Dp = 4.dp
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalIsDarkTheme.current
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
