@@ -182,6 +182,18 @@ class AddEditViewModelTest {
     }
 
     @Test
+    fun `edit mode shows a three decimal price that survives saving again`() = runTest {
+        coEvery { getWarrantyByIdUseCase(5L) } returns Result.Success(
+            warrantyEndingOn(LocalDate.of(2024, 1, 15), LocalDate.of(2026, 1, 15))
+                .copy(price = 1299.999)
+        )
+
+        val vm = createViewModel(warrantyId = 5L)
+
+        assertEquals("1300", vm.state.value.price)
+    }
+
+    @Test
     fun `save is ignored while the receipt photo is still being copied`() = runTest {
         coEvery { checkPremiumLimitUseCase() } returns true
         coEvery { addWarrantyUseCase(any()) } returns Result.Success(1L)

@@ -1,5 +1,8 @@
 package com.miguelcode.warrantyvault.domain.util
 
+import java.math.BigDecimal
+import java.math.RoundingMode
+
 /**
  * Convierte el precio tecleado a `Double` aceptando coma decimal.
  *
@@ -41,3 +44,18 @@ fun String.toPriceOrNull(): Double? {
 
     return normalised.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 }
 }
+
+/**
+ * Texto con el que se rellena el campo al editar, garantizado para volver a parsearse
+ * con [toPriceOrNull] al mismo valor.
+ *
+ * `Double.toString()` no lo cumplía: 1299.999 se escribía "1299.999", que el parser lee
+ * como millares (1299999), y 1.0E7 salía en notación científica. Cada edición, aunque
+ * solo se tocasen las notas, multiplicaba el precio por mil. Se redondea a céntimos y
+ * se quitan los ceros sobrantes, así que siempre quedan 0, 1 o 2 decimales tras el punto.
+ */
+fun Double.toPriceInput(): String =
+    BigDecimal.valueOf(this)
+        .setScale(2, RoundingMode.HALF_UP)
+        .stripTrailingZeros()
+        .toPlainString()

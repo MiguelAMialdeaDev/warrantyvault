@@ -1,5 +1,6 @@
 package com.miguelcode.warrantyvault
 
+import com.miguelcode.warrantyvault.domain.util.toPriceInput
 import com.miguelcode.warrantyvault.domain.util.toPriceOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -93,5 +94,26 @@ class PriceParsingTest {
     @Test
     fun `accepts zero`() {
         assertEquals(0.0, "0".toPriceOrNull()!!, 0.001)
+    }
+
+    // Editar rellena el campo con el precio guardado y lo vuelve a parsear al guardar.
+    // Con Double.toString(), 1299.999 se escribía "1299.999" y volvía como 1299999.
+
+    @Test
+    fun `price input round trips through the parser`() {
+        listOf(0.0, 0.5, 49.9, 549.0, 1000.0, 1299.99, 1_000_000.0, 1.0E7).forEach { price ->
+            assertEquals(price, price.toPriceInput().toPriceOrNull()!!, 0.001)
+        }
+    }
+
+    @Test
+    fun `price input rounds three decimals instead of multiplying by a thousand`() {
+        assertEquals("1300", 1299.999.toPriceInput())
+        assertEquals(1300.0, 1299.999.toPriceInput().toPriceOrNull()!!, 0.001)
+    }
+
+    @Test
+    fun `price input never uses scientific notation`() {
+        assertEquals("10000000", 1.0E7.toPriceInput())
     }
 }

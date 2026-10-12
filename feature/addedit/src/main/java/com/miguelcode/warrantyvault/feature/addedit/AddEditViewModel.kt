@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelcode.warrantyvault.domain.model.Result
 import com.miguelcode.warrantyvault.domain.model.Warranty
+import com.miguelcode.warrantyvault.domain.util.toPriceInput
 import com.miguelcode.warrantyvault.domain.util.toPriceOrNull
 import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
 import com.miguelcode.warrantyvault.domain.usecase.AddWarrantyUseCase
@@ -77,7 +78,7 @@ class AddEditViewModel(
                             productName = warranty.productName,
                             category = warranty.category,
                             store = warranty.store,
-                            price = warranty.price?.toString() ?: "",
+                            price = warranty.price?.toPriceInput() ?: "",
                             purchaseDate = warranty.purchaseDate,
                             warrantyMonths = displayAmount.toString(),
                             isYears = showAsYears,
