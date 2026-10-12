@@ -34,4 +34,9 @@
     <string name="addedit_error_date_required">La fecha es obligatoria</string>
     <string name="addedit_error_duration_required">La duración es obligatoria</string>
     <string name="addedit_error_premium_limit">Has alcanzado el límite gratuito. Hazte premium para añadir más garantías.</string>
+    <string name="addedit_category_electronics">Electrónica</string>
+    <string name="addedit_category_appliance">Electrodoméstico</string>
+    <string name="addedit_category_gaming">Gaming</string>
+    <string name="addedit_category_clothing">Ropa</string>
+    <string name="addedit_category_other">Otro</string>
 </resources>

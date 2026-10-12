@@ -34,4 +34,9 @@
     <string name="addedit_error_date_required">Date is required</string>
     <string name="addedit_error_duration_required">Duration is required</string>
     <string name="addedit_error_premium_limit">You\'ve reached the free limit. Go premium to add more warranties.</string>
+    <string name="addedit_category_electronics">Electronics</string>
+    <string name="addedit_category_appliance">Appliance</string>
+    <string name="addedit_category_gaming">Gaming</string>
+    <string name="addedit_category_clothing">Clothing</string>
+    <string name="addedit_category_other">Other</string>
 </resources>
