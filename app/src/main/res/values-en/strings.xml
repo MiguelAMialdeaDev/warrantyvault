@@ -7,7 +7,7 @@
     <string name="notif_channel_description">Alerts before your warranties expire</string>
 
     <!-- Notification content (WarrantyExpirationWorker) -->
-    <string name="notif_title_last_day">Last day of warranty!</string>
+    <string name="notif_title_last_day">Your warranty expires tomorrow</string>
     <string name="notif_title_days_left">Warranty expires in %1$d days</string>
     <string name="notif_title_expiring">Warranty expiring</string>
     <string name="notif_message_last_day">Your %1$s warranty expires tomorrow. Last chance to claim.</string>

@@ -8,7 +8,7 @@
     <string name="notif_channel_description">Alertas antes de que expiren tus garantías</string>
 
     <!-- Notification content (WarrantyExpirationWorker) -->
-    <string name="notif_title_last_day">¡Último día de garantía!</string>
+    <string name="notif_title_last_day">Tu garantía expira mañana</string>
     <string name="notif_title_days_left">Garantía expira en %1$d días</string>
     <string name="notif_title_expiring">Garantía por vencer</string>
     <string name="notif_message_last_day">La garantía de %1$s expira mañana. Última oportunidad para reclamar.</string>
