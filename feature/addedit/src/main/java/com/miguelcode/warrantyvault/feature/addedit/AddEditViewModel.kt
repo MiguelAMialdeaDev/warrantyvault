@@ -8,6 +8,7 @@ import com.miguelcode.warrantyvault.domain.model.Result
 import com.miguelcode.warrantyvault.domain.model.Warranty
 import com.miguelcode.warrantyvault.domain.util.toPriceInput
 import com.miguelcode.warrantyvault.domain.util.toPriceOrNull
+import com.miguelcode.warrantyvault.domain.util.warrantyMonths
 import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
 import com.miguelcode.warrantyvault.domain.usecase.AddWarrantyUseCase
 import com.miguelcode.warrantyvault.domain.usecase.CheckPremiumLimitUseCase
@@ -23,7 +24,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 class AddEditViewModel(
     private val warrantyId: Long?,
@@ -68,7 +68,7 @@ class AddEditViewModel(
             when (val result = getWarrantyByIdUseCase(id)) {
                 is Result.Success -> {
                     val warranty = result.data
-                    val totalMonths = monthsBetween(warranty.purchaseDate, warranty.warrantyEndDate)
+                    val totalMonths = warrantyMonths(warranty.purchaseDate, warranty.warrantyEndDate)
                     val showAsYears = totalMonths >= 12 && totalMonths % 12 == 0L
                     val displayAmount = if (showAsYears) totalMonths / 12 else totalMonths
                     updateState {
@@ -95,19 +95,6 @@ class AddEditViewModel(
                 }
             }
         }
-    }
-
-    /**
-     * Duración en meses que el usuario introdujo, no la distancia natural entre fechas.
-     *
-     * `plusMonths` recorta el día cuando el mes destino es más corto (31 ene + 1 mes =
-     * 28 feb) y `MONTHS.between` no revierte ese recorte: devuelve un mes de menos. Sin
-     * esta corrección, editar una garantía comprada a fin de mes mostraba N-1 (o 0) y
-     * al recalcular persistía una fecha de fin más corta que la real.
-     */
-    private fun monthsBetween(start: LocalDate, end: LocalDate): Long {
-        val base = ChronoUnit.MONTHS.between(start, end)
-        return if (start.plusMonths(base + 1) == end) base + 1 else base
     }
 
     private fun checkCanAdd() {
