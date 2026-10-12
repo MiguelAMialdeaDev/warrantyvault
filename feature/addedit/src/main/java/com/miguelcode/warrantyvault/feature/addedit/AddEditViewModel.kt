@@ -220,6 +220,9 @@ class AddEditViewModel(
         // fuera aún no ha ocurrido).
         if (current.isSaving || current.isSaved) return
 
+        // Con la copia de la foto en marcha, guardar persistía la garantía sin el ticket
+        // (o con el anterior) y el fichero recién copiado quedaba huérfano en disco.
+        if (current.isPhotoLoading) return
         if (current.productName.isBlank()) {
             updateState { it.copy(productNameError = AddEditError.NameRequired) }
             return

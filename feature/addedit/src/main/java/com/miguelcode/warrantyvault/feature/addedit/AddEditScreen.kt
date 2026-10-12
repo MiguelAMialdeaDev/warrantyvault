@@ -143,7 +143,7 @@ fun AddEditScreen(
                 actions = {
                     IconButton(
                         onClick = onSaveSafe,
-                        enabled = state.isFormValid && !state.isSaving
+                        enabled = state.isFormValid && !state.isSaving && !state.isPhotoLoading
                     ) {
                         Icon(
                             Icons.Outlined.Check,

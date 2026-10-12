@@ -181,6 +181,25 @@ class AddEditViewModelTest {
         }
     }
 
+    @Test
+    fun `save is ignored while the receipt photo is still being copied`() = runTest {
+        coEvery { checkPremiumLimitUseCase() } returns true
+        coEvery { addWarrantyUseCase(any()) } returns Result.Success(1L)
+        val copy = CompletableDeferred<String?>()
+        val vm = createViewModel()
+        vm.fillValidForm()
+
+        // La copia queda colgada en IO hasta que el test la completa.
+        vm.onPhotoPicked(mockk(relaxed = true)) { kotlinx.coroutines.runBlocking { copy.await() } }
+        assertTrue(vm.state.value.isPhotoLoading)
+
+        vm.onSave()
+
+        coVerify(exactly = 0) { addWarrantyUseCase(any()) }
+        assertFalse(vm.state.value.isSaving)
+        copy.complete(null)
+    }
+
     private fun warrantyEndingOn(purchase: LocalDate, end: LocalDate) = Warranty(
         id = 5,
         productName = "PS5",
