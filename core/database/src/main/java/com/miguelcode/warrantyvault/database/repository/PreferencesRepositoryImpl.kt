@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -17,7 +18,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "warranty_vault_prefs")
+/**
+ * El `catch` de [PreferencesRepositoryImpl.safeData] solo cubre las lecturas: un `edit`
+ * sobre un fichero corrupto seguía lanzando CorruptionException (al arrancar, desde la
+ * sincronización de compras), y la app volvía al crash loop. El handler sustituye el
+ * fichero por uno vacío antes de que la excepción llegue a nadie.
+ */
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "warranty_vault_prefs",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
+)
 
 class PreferencesRepositoryImpl(private val context: Context) : PreferencesRepository {
 
