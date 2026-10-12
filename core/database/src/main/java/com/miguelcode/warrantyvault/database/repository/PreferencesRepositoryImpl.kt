@@ -1,5 +1,6 @@
 package com.miguelcode.warrantyvault.database.repository
 
+import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.datastore.core.DataStore
@@ -50,13 +51,20 @@ class PreferencesRepositoryImpl(private val context: Context) : PreferencesRepos
      * concede de serie y no hay diálogo cuyo resultado ponga la preferencia a true. Con un
      * default en false, las alertas de vencimiento (la función central de la app) quedaban
      * apagadas para siempre en todo Android 8.0-12 salvo que el usuario descubriese el
-     * interruptor de Ajustes. En API 33+ el default sigue siendo false: manda el permiso.
+     * interruptor de Ajustes.
+     *
+     * En API 33+ manda el permiso, pero leído en vivo y no como un false fijo: quien
+     * instaló en Android 12 y nunca tocó el interruptor no tiene nada guardado, y al
+     * actualizar a 13 el sistema le concede el permiso de oficio. Con el false fijo, el
+     * siguiente arranque cancelaba todas sus alertas sin avisar.
      *
      * Solo es el valor por defecto; en cuanto el usuario toca el interruptor, gana lo
      * guardado.
      */
     private val notificationsDefault: Boolean
-        get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            context.getSystemService(NotificationManager::class.java)
+                ?.areNotificationsEnabled() == true
 
     override suspend fun isPremium(): Boolean =
         safeData.first()[KEY_IS_PREMIUM] ?: false
