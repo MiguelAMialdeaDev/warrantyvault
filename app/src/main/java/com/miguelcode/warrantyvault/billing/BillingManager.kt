@@ -174,8 +174,10 @@ class BillingManager(
             ).build()
 
         val result = suspendCancellableCoroutine { cont ->
-            billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-                cont.resume(billingResult to productDetailsList)
+            // Billing 8 devuelve un QueryProductDetailsResult: los productos que Play no
+            // encuentra van aparte (unfetchedProductList) en vez de desaparecer sin más.
+            billingClient.queryProductDetailsAsync(params) { billingResult, queryResult ->
+                cont.resume(billingResult to queryResult.productDetailsList)
             }
         }
 

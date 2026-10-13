@@ -103,9 +103,10 @@ dependencies {
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    // Billing. Google Play exige la 7 o superior para publicar: con la 6.x el AAB se
-    // rechaza al subirlo, igual que pasaba con targetSdk 34.
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    // Billing. Desde el 31-ago-2026 Google Play exige la 8 o superior para publicar.
+    // Artefacto Java y no -ktx: no usamos sus extensiones y el -ktx 8 viene compilado
+    // con una versión de Kotlin más nueva que la del proyecto.
+    implementation("com.android.billingclient:billing:8.0.0")
 
     // Tests
     testImplementation("junit:junit:4.13.2")
