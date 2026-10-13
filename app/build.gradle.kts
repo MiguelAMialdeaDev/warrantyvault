@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.miguelcode.warrantyvault"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.miguelcode.warrantyvault"
@@ -13,7 +13,7 @@ android {
         // API 35 es el mínimo que Google Play acepta para publicar. Targetear 35 activa
         // el edge-to-edge obligatorio de Android 15: la app ya llama a enableEdgeToEdge(),
         // pero hay que revisar que ninguna pantalla quede bajo las barras del sistema.
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
