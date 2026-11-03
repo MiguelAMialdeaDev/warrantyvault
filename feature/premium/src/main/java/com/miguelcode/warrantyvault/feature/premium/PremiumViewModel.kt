@@ -20,6 +20,7 @@ class PremiumViewModel(
     val stateCode: StateFlow<Int> = billingManager.stateCode
     val errorMessage: StateFlow<String?> = billingManager.errorMessage
     val prices: StateFlow<Map<String, SubscriptionPrice>> = billingManager.prices
+    val plansUnavailable: StateFlow<Boolean> = billingManager.plansUnavailable
 
     /**
      * Porcentaje de ahorro del plan anual, calculado con los precios reales de Play.

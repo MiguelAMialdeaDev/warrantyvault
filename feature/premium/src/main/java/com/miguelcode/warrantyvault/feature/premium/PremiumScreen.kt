@@ -60,6 +60,7 @@ fun PremiumScreen(
 ) {
     val billingState by viewModel.stateCode.collectAsStateWithLifecycle()
     val prices by viewModel.prices.collectAsStateWithLifecycle()
+    val plansUnavailable by viewModel.plansUnavailable.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val annualSavings by viewModel.annualSavingsPercent.collectAsStateWithLifecycle()
 
@@ -135,7 +136,7 @@ fun PremiumScreen(
                 PriceCard(
                     title = stringResource(R.string.premium_monthly),
                     price = prices[BillingManagerContract.PRODUCT_MONTHLY]?.formatted
-                        ?: stringResource(R.string.premium_monthly_price),
+                        ?: stringResource(R.string.premium_price_placeholder),
                     period = stringResource(R.string.premium_monthly_period),
                     highlighted = selectedPlan == PLAN_MONTHLY,
                     onClick = { selectedPlan = PLAN_MONTHLY },
@@ -144,7 +145,7 @@ fun PremiumScreen(
                 PriceCard(
                     title = stringResource(R.string.premium_annual),
                     price = prices[BillingManagerContract.PRODUCT_YEARLY]?.formatted
-                        ?: stringResource(R.string.premium_annual_price),
+                        ?: stringResource(R.string.premium_price_placeholder),
                     period = stringResource(R.string.premium_annual_period),
                     // La insignia solo aparece si el ahorro es real según los precios de
                     // Play. Un "Ahorra 67%" fijo mentiría en cuanto cambies precios o el
@@ -181,6 +182,7 @@ fun PremiumScreen(
                     )
                     billingState == BillingManagerContract.STATE_PURCHASED ->
                         Text(stringResource(R.string.premium_cta_purchased))
+                    !plansReady && plansUnavailable -> Text(stringResource(R.string.premium_cta_unavailable))
                     !plansReady -> Text(stringResource(R.string.premium_cta_loading))
                     else -> Text(stringResource(R.string.premium_cta))
                 }

@@ -30,15 +30,15 @@
     <string name="premium_annual">Anual</string>
     <string name="premium_annual_period">/año</string>
     <!--
-      Precios de respaldo, solo mientras Play responde. El precio bueno es siempre el de
-      ProductDetails: Play aplica impuestos y moneda por país y estos se quedarían viejos.
+      Sin precio inventado mientras Play responde. El único precio válido es el de
+      ProductDetails: Play aplica impuestos y moneda por país y uno fijo mentiría.
     -->
-    <string name="premium_monthly_price">1,99 €</string>
-    <string name="premium_annual_price">7,99 €</string>
+    <string name="premium_price_placeholder">—</string>
     <string name="premium_save_badge">Ahorra %1$d%%</string>
 
     <string name="premium_cta">Empezar con Premium</string>
     <string name="premium_cta_loading">Cargando planes…</string>
+    <string name="premium_cta_unavailable">Planes no disponibles ahora mismo</string>
     <string name="premium_cta_purchased">Premium activado</string>
     <string name="premium_cancel_anytime">Cancela cuando quieras</string>
 </resources>

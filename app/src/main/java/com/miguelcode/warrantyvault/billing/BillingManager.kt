@@ -51,6 +51,9 @@ class BillingManager(
     private val _prices = MutableStateFlow<Map<String, SubscriptionPrice>>(emptyMap())
     override val prices: StateFlow<Map<String, SubscriptionPrice>> = _prices.asStateFlow()
 
+    private val _plansUnavailable = MutableStateFlow(false)
+    override val plansUnavailable: StateFlow<Boolean> = _plansUnavailable.asStateFlow()
+
     private val products = MutableStateFlow<Map<String, ProductDetails>>(emptyMap())
 
     /** Evita lanzar dos startConnection a la vez desde connect() y desde el backoff. */
@@ -177,7 +180,9 @@ class BillingManager(
             // Billing 8 devuelve un QueryProductDetailsResult: los productos que Play no
             // encuentra van aparte (unfetchedProductList) en vez de desaparecer sin más.
             billingClient.queryProductDetailsAsync(params) { billingResult, queryResult ->
-                cont.resume(billingResult to queryResult.productDetailsList)
+                cont.resume(
+                    Triple(billingResult, queryResult.productDetailsList, queryResult.unfetchedProductList)
+                )
             }
         }
 
@@ -188,6 +193,12 @@ class BillingManager(
                 product.recurringPrice()?.let { id to it }
             }.toMap()
             productQueryAttempts = 0
+            // Un producto que Play no encuentra no es un fallo de red: reintentar no lo
+            // arregla. Se avisa una vez en vez de dejar la pantalla esperando.
+            _plansUnavailable.value = _prices.value.isEmpty()
+            if (result.third.isNotEmpty()) {
+                _errorMessage.value = appContext.getString(R.string.billing_error_product_unavailable)
+            }
         } else if (productQueryAttempts < MAX_PRODUCT_QUERY_ATTEMPTS) {
             // Sin reintento, un fallo de red puntual dejaba la pantalla Premium sin
             // precios el resto de la sesión: el botón de compra se quedaba deshabilitado

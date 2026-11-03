@@ -17,6 +17,13 @@ interface BillingManagerContract {
      */
     val prices: StateFlow<Map<String, SubscriptionPrice>>
 
+    /**
+     * true cuando Play responde bien pero no devuelve ningún plan (productos sin crear
+     * o inactivos en Play Console). Evita dejar el botón en "cargando" para siempre en
+     * un caso que no se arregla solo.
+     */
+    val plansUnavailable: StateFlow<Boolean>
+
     fun launchPurchase(activity: Activity, productId: String)
 
     /** Abre la conexión con Play y, al lograrlo, consulta productos y compras. Idempotente. */
