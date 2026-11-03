@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
+import com.miguelcode.warrantyvault.domain.usecase.SyncExpirationAlertsUseCase
 import com.miguelcode.warrantyvault.navigation.AppNavGraph
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
 import kotlinx.coroutines.launch
@@ -34,6 +35,7 @@ class MainActivity : ComponentActivity() {
 
     private val preferencesRepository: PreferencesRepository by inject()
     private val billingManager: BillingManagerContract by inject()
+    private val syncExpirationAlerts: SyncExpirationAlertsUseCase by inject()
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -41,6 +43,10 @@ class MainActivity : ComponentActivity() {
         // Sincroniza la preferencia con la decisión real del usuario.
         lifecycleScope.launch {
             preferencesRepository.setNotificationsEnabled(granted)
+            // El sync del arranque ya corrió con la preferencia a false y no programó nada.
+            // Sin esto, quien restaura garantías de una copia y concede el permiso se quedaba
+            // sin avisos hasta el siguiente arranque en frío.
+            syncExpirationAlerts()
         }
     }
 
