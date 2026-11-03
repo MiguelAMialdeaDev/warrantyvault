@@ -105,4 +105,36 @@ class BillingRulesTest {
     fun `no pricing phases means no price`() {
         assertNull(BillingRules.recurringPhase(emptyList()))
     }
+
+    private fun offer(id: String?): ProductDetails.SubscriptionOfferDetails = mockk {
+        every { offerId } returns id
+    }
+
+    @Test
+    fun `the advertised price comes from the base plan even if an offer is listed first`() {
+        val trial = offer("free-trial")
+        val base = offer(null)
+
+        assertEquals(base, BillingRules.basePlanOffer(listOf(trial, base)))
+    }
+
+    @Test
+    fun `an eligible offer is used to purchase whatever its position`() {
+        val base = offer(null)
+        val trial = offer("free-trial")
+
+        assertEquals(trial, BillingRules.purchaseOffer(listOf(base, trial)))
+    }
+
+    @Test
+    fun `without offers the purchase uses the base plan`() {
+        val base = offer(null)
+
+        assertEquals(base, BillingRules.purchaseOffer(listOf(base)))
+    }
+
+    @Test
+    fun `no offers means nothing to buy`() {
+        assertNull(BillingRules.purchaseOffer(emptyList()))
+    }
 }

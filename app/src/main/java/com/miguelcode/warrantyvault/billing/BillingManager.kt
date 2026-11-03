@@ -217,7 +217,7 @@ class BillingManager(
      */
     private fun ProductDetails.recurringPrice(): SubscriptionPrice? {
         val phases = subscriptionOfferDetails
-            ?.firstOrNull()
+            ?.let(BillingRules::basePlanOffer)
             ?.pricingPhases
             ?.pricingPhaseList
             ?: return null
@@ -263,7 +263,7 @@ class BillingManager(
             return
         }
         val offerToken = productDetails.subscriptionOfferDetails
-            ?.firstOrNull()
+            ?.let(BillingRules::purchaseOffer)
             ?.offerToken
             ?: run {
                 _errorMessage.value = appContext.getString(R.string.billing_error_product_unavailable)

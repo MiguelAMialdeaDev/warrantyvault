@@ -36,4 +36,24 @@ internal object BillingRules {
      */
     fun recurringPhase(phases: List<ProductDetails.PricingPhase>): ProductDetails.PricingPhase? =
         phases.lastOrNull()
+
+    /**
+     * Plan base: la entrada sin offerId. Es la que da el precio recurrente que se anuncia.
+     * Play no garantiza el orden de la lista, así que `firstOrNull()` podía devolver una
+     * oferta de entrada en vez del plan base, o al revés.
+     */
+    fun basePlanOffer(
+        offers: List<ProductDetails.SubscriptionOfferDetails>
+    ): ProductDetails.SubscriptionOfferDetails? =
+        offers.firstOrNull { it.offerId == null } ?: offers.firstOrNull()
+
+    /**
+     * Oferta con la que se compra. Play solo devuelve las ofertas a las que el usuario
+     * tiene derecho, así que si aparece una oferta propia (prueba gratis, precio de
+     * entrada) se usa; si no, el plan base.
+     */
+    fun purchaseOffer(
+        offers: List<ProductDetails.SubscriptionOfferDetails>
+    ): ProductDetails.SubscriptionOfferDetails? =
+        offers.firstOrNull { it.offerId != null } ?: basePlanOffer(offers)
 }
