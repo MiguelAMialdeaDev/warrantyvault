@@ -127,14 +127,23 @@ class WarrantyExpirationWorker(
             .build()
 
         NotificationManagerCompat.from(context).notify(
-            (warrantyId.toString() + daysLeft.toString()).hashCode(),
+            notificationIdFor(warrantyId, daysLeft),
             notification
         )
         return true
     }
 
-    private companion object {
+    internal companion object {
         /** Centinela: `Data.getLong` no distingue "ausente" de un valor legítimo. */
-        const val NO_END_DATE = Long.MIN_VALUE
+        private const val NO_END_DATE = Long.MIN_VALUE
+
+        /**
+         * Id único por garantía y día de aviso. Concatenar los dos números como texto
+         * chocaba: la garantía 1 a 14 días y la 11 a 4 días daban "114", y un aviso
+         * sustituía al otro. Los días restantes nunca llegan a 1000, así que el id es
+         * exacto hasta ~2 millones de garantías.
+         */
+        fun notificationIdFor(warrantyId: Long, daysLeft: Long): Int =
+            (warrantyId * 1000 + daysLeft).hashCode()
     }
 }
