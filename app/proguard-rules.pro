@@ -32,7 +32,7 @@
 }
 
 # ============================================================
-# Google Play Billing 6.x
+# Google Play Billing 8.x
 # ============================================================
 -keep class com.android.billingclient.api.** { *; }
 -dontwarn com.android.billingclient.api.**
