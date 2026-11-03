@@ -271,7 +271,17 @@ class BillingManager(
             .setProductDetailsParamsList(listOf(productDetailsParams))
             .build()
 
-        billingClient.launchBillingFlow(activity, billingFlowParams)
+        // Si Play no llega a abrir la hoja de compra (conexión caída, servicio no
+        // disponible…) el listener nunca se llama. Sin comprobar el resultado, el botón
+        // se quedaba en "cargando" hasta salir y volver a la app.
+        val launchResult = billingClient.launchBillingFlow(activity, billingFlowParams)
+        if (launchResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            _errorMessage.value = userMessageFor(launchResult)
+            _stateCode.value = STATE_ERROR
+            if (launchResult.responseCode == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED) {
+                connect()
+            }
+        }
     }
 
     private fun handlePurchase(purchase: Purchase) {
