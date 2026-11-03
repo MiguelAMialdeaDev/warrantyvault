@@ -4,11 +4,15 @@ import android.app.Application
 import com.miguelcode.warrantyvault.di.appModules
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.notification.NotificationScheduler
+import com.miguelcode.warrantyvault.domain.repository.WarrantyRepository
 import com.miguelcode.warrantyvault.domain.usecase.SyncExpirationAlertsUseCase
+import com.miguelcode.warrantyvault.storage.OrphanPhotoSweeper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.io.File
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -36,8 +40,18 @@ class WarrantyVaultApp : Application() {
         // del hilo principal porque lee base de datos y DataStore, y es idempotente, así
         // que repetirlo en cada arranque no duplica nada.
         val syncAlerts = get<SyncExpirationAlertsUseCase>()
+        val warrantyRepository = get<WarrantyRepository>()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             syncAlerts()
+            // Fotos copiadas al elegirlas pero nunca guardadas (salir sin guardar, cambiar
+            // de foto): sin este barrido ocupaban espacio para siempre.
+            runCatching {
+                val referenced = warrantyRepository.getAllWarranties().first()
+                    .mapNotNull { it.receiptPhotoPath }
+                    .toSet()
+                OrphanPhotoSweeper(File(filesDir, OrphanPhotoSweeper.PHOTOS_DIR_NAME))
+                    .sweep(referenced)
+            }
         }
     }
 }
