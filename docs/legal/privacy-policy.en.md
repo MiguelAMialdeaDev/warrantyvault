@@ -1,6 +1,6 @@
 # Privacy Policy — WarrantyVault
 
-**Last updated:** May 23, 2026
+**Last updated:** November 3, 2026
 
 ## Summary
 
@@ -12,16 +12,22 @@ The following data is stored **only on your device** (local database and the app
 
 - Product information: name, category, store, price, purchase date, warranty end date and notes.
 - Photos of receipts or invoices (only if you choose to add them).
-- App preferences: theme, language and notification status.
+- App preferences: theme and notification status.
 
-This data **never leaves your device**. We do not have servers nor any access to your information.
+We never receive any of this data: we do not have servers nor any access to your information.
+
+### Android backup
+
+WarrantyVault uses Android's backup system. If you have Google backup enabled on your device, your warranties, your preferences and your receipt photos are backed up **to your own Google account**, encrypted, in the same way as the rest of the apps you have installed. This is what lets you restore your data when you switch phones or reinstall the app.
+
+That backup is yours and under your control: we have no access to it at any point. You can turn it off at any time from your device settings, under Google backup.
 
 ## 2. Permissions the app requests
 
 - **Notifications (Android 13+):** to send you reminders when a warranty is about to expire.
 - **Billing (Google Play Billing):** to process Premium subscriptions through Google Play.
 
-The app **does not request the Internet permission**, so it is technically unable to send your data outside the device.
+The app includes the Internet permission because the Google Play billing library requires it. **It is only used to talk to Google Play and validate your subscription**: your warranties, photos and preferences are never sent anywhere.
 
 ## 3. Premium subscriptions
 
@@ -36,7 +42,7 @@ WarrantyVault only receives from Google Play the confirmation that your subscrip
 ## 5. Your rights
 
 - **Access your data:** everything is inside the app, on your device.
-- **Delete your data:** uninstalling the app removes absolutely all data (database, photos and preferences) from your device. No copy exists anywhere else.
+- **Delete your data:** uninstalling the app removes absolutely all data (database, photos and preferences) from your device. The only copy outside it is the backup in your own Google account, if you have it enabled (see section 1).
 - **Android automatic backup:** if you have Google Backup enabled on your account, Android may include this app's data in its encrypted backup. You can exclude it in *Settings → System → Backup*.
 
 ## 6. Children
