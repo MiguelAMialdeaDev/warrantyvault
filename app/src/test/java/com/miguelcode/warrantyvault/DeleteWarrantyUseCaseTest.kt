@@ -59,7 +59,7 @@ class DeleteWarrantyUseCaseTest {
 
         useCase(warranty(id = 5))
 
-        verify(exactly = 1) { notificationScheduler.cancelAlerts(5L) }
+        verify(exactly = 1) { notificationScheduler.cancelAlerts(5L, true) }
     }
 
     @Test
@@ -95,7 +95,7 @@ class DeleteWarrantyUseCaseTest {
 
         useCase(warranty())
 
-        verify(exactly = 0) { notificationScheduler.cancelAlerts(any()) }
+        verify(exactly = 0) { notificationScheduler.cancelAlerts(any(), any()) }
     }
 
     @Test

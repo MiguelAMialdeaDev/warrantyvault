@@ -19,12 +19,15 @@ class UpdateWarrantyUseCase(
 ) {
     suspend operator fun invoke(warranty: Warranty): Result<Unit> {
         // Lee la foto anterior ANTES de actualizar para poder limpiarla si cambió.
-        val previousPhoto = (repository.getWarrantyById(warranty.id) as? Result.Success)
-            ?.data?.receiptPhotoPath
+        val previous = (repository.getWarrantyById(warranty.id) as? Result.Success)?.data
+        val previousPhoto = previous?.receiptPhotoPath
 
         val result = repository.updateWarranty(warranty)
         if (result is Result.Success) {
-            notificationScheduler.cancelAlerts(warranty.id)
+            // Los avisos pendientes se rehacen siempre (llevan el nombre del producto),
+            // pero los ya mostrados solo se olvidan si cambió la fecha de fin.
+            val endDateChanged = previous?.warrantyEndDate != warranty.warrantyEndDate
+            notificationScheduler.cancelAlerts(warranty.id, forgetDelivered = endDateChanged)
             if (preferencesRepository.notificationsEnabledFlow.first()) {
                 notificationScheduler.scheduleExpirationAlerts(warranty)
             }

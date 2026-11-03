@@ -72,11 +72,12 @@ class NotificationSchedulerImpl(
         }
     }
 
-    override fun cancelAlerts(warrantyId: Long) {
+    override fun cancelAlerts(warrantyId: Long, forgetDelivered: Boolean) {
         workManager.cancelAllWorkByTag(tagFor(warrantyId))
-        // Se llama al borrar y al editar. Si cambió la fecha de fin, los avisos vuelven a
-        // tener sentido, así que el registro de entregados se borra con ellos.
-        deliveredAlerts.clearFor(warrantyId)
+        // Al borrar la garantía o cambiar su fecha de fin, el registro de avisos entregados
+        // ya no sirve y se borra. Si la fecha no cambió se conserva: borrarlo hacía
+        // reaparecer el aviso de hoy al corregir, por ejemplo, las notas.
+        if (forgetDelivered) deliveredAlerts.clearFor(warrantyId)
     }
 
     /**

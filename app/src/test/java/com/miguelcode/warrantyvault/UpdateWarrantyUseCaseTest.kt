@@ -67,7 +67,7 @@ class UpdateWarrantyUseCaseTest {
 
         useCase(warranty())
 
-        verify(exactly = 1) { notificationScheduler.cancelAlerts(1L) }
+        verify(exactly = 1) { notificationScheduler.cancelAlerts(1L, any()) }
     }
 
     @Test
@@ -80,7 +80,7 @@ class UpdateWarrantyUseCaseTest {
         useCase(updated)
 
         verifyOrder {
-            notificationScheduler.cancelAlerts(1L)
+            notificationScheduler.cancelAlerts(1L, any())
             notificationScheduler.scheduleExpirationAlerts(updated)
         }
     }
@@ -93,7 +93,7 @@ class UpdateWarrantyUseCaseTest {
 
         useCase(warranty())
 
-        verify(exactly = 1) { notificationScheduler.cancelAlerts(1L) }
+        verify(exactly = 1) { notificationScheduler.cancelAlerts(1L, any()) }
         verify(exactly = 0) { notificationScheduler.scheduleExpirationAlerts(any()) }
     }
 
@@ -170,7 +170,7 @@ class UpdateWarrantyUseCaseTest {
 
         useCase(warranty(photoPath = "/data/new.jpg"))
 
-        verify(exactly = 0) { notificationScheduler.cancelAlerts(any()) }
+        verify(exactly = 0) { notificationScheduler.cancelAlerts(any(), any()) }
         verify(exactly = 0) { notificationScheduler.scheduleExpirationAlerts(any()) }
         verify(exactly = 0) { photoFileCleaner.delete(any()) }
         verify(exactly = 0) { analytics.logEvent(any(), any()) }
@@ -209,5 +209,29 @@ class UpdateWarrantyUseCaseTest {
         useCase(toUpdate)
 
         assertEquals(toUpdate, captured.captured)
+    }
+
+    @Test
+    fun `editing without changing the end date keeps the delivered alerts`() = runTest {
+        // Si se olvidaban, corregir las notas el día del aviso lo volvía a lanzar.
+        coEvery { repository.getWarrantyById(1L) } returns Result.Success(warranty())
+        coEvery { repository.updateWarranty(any()) } returns Result.Success(Unit)
+        every { preferencesRepository.notificationsEnabledFlow } returns flowOf(true)
+
+        useCase(warranty().copy(notes = "Factura en el cajón"))
+
+        verify(exactly = 1) { notificationScheduler.cancelAlerts(1L, false) }
+    }
+
+    @Test
+    fun `changing the end date forgets the delivered alerts`() = runTest {
+        coEvery { repository.getWarrantyById(1L) } returns Result.Success(warranty())
+        coEvery { repository.updateWarranty(any()) } returns Result.Success(Unit)
+        every { preferencesRepository.notificationsEnabledFlow } returns flowOf(true)
+        val extended = warranty().let { it.copy(warrantyEndDate = it.warrantyEndDate.plusYears(1)) }
+
+        useCase(extended)
+
+        verify(exactly = 1) { notificationScheduler.cancelAlerts(1L, true) }
     }
 }
