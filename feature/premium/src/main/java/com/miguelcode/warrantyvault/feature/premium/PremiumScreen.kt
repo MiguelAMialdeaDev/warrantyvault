@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,6 +44,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -189,11 +191,25 @@ fun PremiumScreen(
             }
 
             Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.premium_cancel_anytime),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
+            if (billingState == BillingManagerContract.STATE_PURCHASED) {
+                // Quien ya paga necesita una salida clara para cambiar de plan o cancelar.
+                // Play exige que sea fácil, y sin enlace había que buscarlo en Play Store.
+                val uriHandler = LocalUriHandler.current
+                val packageName = LocalContext.current.packageName
+                TextButton(onClick = {
+                    uriHandler.openUri(
+                        "https://play.google.com/store/account/subscriptions?package=$packageName"
+                    )
+                }) {
+                    Text(stringResource(R.string.premium_manage_subscription))
+                }
+            } else {
+                Text(
+                    stringResource(R.string.premium_cancel_anytime),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
 
             Spacer(Modifier.height(32.dp))
             RoadmapSection()

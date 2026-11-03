@@ -41,4 +41,5 @@
     <string name="premium_cta_unavailable">Planes no disponibles ahora mismo</string>
     <string name="premium_cta_purchased">Premium activado</string>
     <string name="premium_cancel_anytime">Cancela cuando quieras</string>
+    <string name="premium_manage_subscription">Gestionar suscripción</string>
 </resources>

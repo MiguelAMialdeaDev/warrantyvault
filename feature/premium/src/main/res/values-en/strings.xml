@@ -31,4 +31,5 @@
     <string name="premium_cta_unavailable">Plans not available right now</string>
     <string name="premium_cta_purchased">Premium active</string>
     <string name="premium_cancel_anytime">Cancel anytime</string>
+    <string name="premium_manage_subscription">Manage subscription</string>
 </resources>
