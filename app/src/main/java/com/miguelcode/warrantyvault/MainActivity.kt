@@ -61,6 +61,13 @@ class MainActivity : ComponentActivity() {
         // editar con un id elegido. Se vacían antes de montar el grafo.
         intent = sanitized(intent)
         super.onCreate(savedInstanceState)
+        // La miniatura de Recientes guardaba la última pantalla: el detalle con precio,
+        // notas y la foto del ticket, que puede llevar dirección o los últimos dígitos de
+        // la tarjeta. Las capturas que haga el usuario siguen funcionando (no es
+        // FLAG_SECURE): solo se oculta la miniatura. Antes de Android 13 no existe.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(false)
+        }
         enableEdgeToEdge()
         // Sincroniza la preferencia con el estado real del permiso del sistema en cada
         // creación. Si el usuario revoca/concede en Ajustes, la preferencia local se ajusta.
