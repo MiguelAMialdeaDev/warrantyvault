@@ -26,8 +26,8 @@ android {
         // el edge-to-edge obligatorio de Android 15: la app ya llama a enableEdgeToEdge(),
         // pero hay que revisar que ninguna pantalla quede bajo las barras del sistema.
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "PLAY_LICENSE_KEY", "\"$playLicenseKey\"")
     }
