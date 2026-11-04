@@ -1,6 +1,8 @@
 package com.miguelcode.warrantyvault.di
 
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.miguelcode.warrantyvault.BuildConfig
 import com.miguelcode.warrantyvault.analytics.NoOpAnalyticsTracker
 import com.miguelcode.warrantyvault.database.AppDatabase
@@ -45,6 +47,15 @@ val databaseModule = module {
                 // antes de subir una versión con cambios de esquema, o la app crashea al abrirse.
                 if (BuildConfig.DEBUG) fallbackToDestructiveMigration()
             }
+            // SQLite deja el contenido de las filas borradas en las páginas libres hasta que
+            // se reutilizan: una garantía borrada se podía recuperar con un volcado forense.
+            // secure_delete sobrescribe con ceros al borrar. Es un PRAGMA que devuelve fila,
+            // así que va por query() y no por execSQL().
+            .addCallback(object : RoomDatabase.Callback() {
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    db.query("PRAGMA secure_delete = ON").close()
+                }
+            })
             .build()
     }
     single { get<AppDatabase>().warrantyDao() }
