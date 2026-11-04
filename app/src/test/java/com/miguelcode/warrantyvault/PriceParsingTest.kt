@@ -116,4 +116,22 @@ class PriceParsingTest {
     fun `price input never uses scientific notation`() {
         assertEquals("10000000", 1.0E7.toPriceInput())
     }
+
+    @Test
+    fun `scientific notation is rejected`() {
+        assertNull("1e308".toPriceOrNull())
+        assertNull("9E99".toPriceOrNull())
+    }
+
+    @Test
+    fun `prices above ten million are rejected`() {
+        assertNull("10000001".toPriceOrNull())
+        assertEquals(10_000_000.0, "10000000".toPriceOrNull()!!, 0.001)
+    }
+
+    @Test
+    fun `letters and symbols are rejected`() {
+        assertNull("12abc".toPriceOrNull())
+        assertNull("-5".toPriceOrNull())
+    }
 }

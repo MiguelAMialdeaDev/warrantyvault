@@ -17,6 +17,9 @@ import java.math.RoundingMode
 fun String.toPriceOrNull(): Double? {
     val cleaned = trim().replace(" ", "").replace(" ", "")
     if (cleaned.isEmpty()) return null
+    // Solo cifras y separadores: toDoubleOrNull() acepta exponentes ("1e308"), que se
+    // podían pegar en el campo aunque el teclado numérico no los deje escribir.
+    if (cleaned.any { !it.isDigit() && it != ',' && it != '.' }) return null
 
     val lastComma = cleaned.lastIndexOf(',')
     val lastDot = cleaned.lastIndexOf('.')
@@ -42,8 +45,11 @@ fun String.toPriceOrNull(): Double? {
         else -> cleaned
     }
 
-    return normalised.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 }
+    return normalised.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 && it <= MAX_PRICE }
 }
+
+/** Diez millones: ningún producto con garantía cuesta más, y evita cifras absurdas. */
+const val MAX_PRICE = 10_000_000.0
 
 /**
  * Texto con el que se rellena el campo al editar, garantizado para volver a parsearse
