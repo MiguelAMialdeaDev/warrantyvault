@@ -1,9 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Reglas legacy de Auto Backup (Android < 12). Respalda BD + DataStore y excluye las
-  fotos de ticket por la misma razón que data_extraction_rules.xml: pasarse de la cuota
-  de 25 MB tira el backup entero, no solo las fotos.
+  Reglas de Auto Backup para Android 11 y anteriores (en 12+ mandan data_extraction_rules).
+
+  Con un simple <exclude>, `adb backup` sacaba en claro la base de datos y las preferencias
+  de cualquier móvil desbloqueado con la depuración USB activada. Con <include> y
+  requireFlags solo se copian los datos cuando el destino es la copia cifrada de Google
+  (clientSideEncryption) o el traspaso directo a un móvil nuevo (deviceToDeviceTransfer);
+  adb backup no cumple ninguna de las dos y se queda vacío. requireFlags existe desde
+  Android 9: en Android 8 se ignora y el comportamiento es el de antes.
+
+  Las fotos de ticket solo van en el traspaso directo: en la nube hay una cuota de 25 MB y
+  pasarse tira la copia ENTERA, no solo las fotos.
+
+  El premium no está aquí: vive en noBackupFilesDir, que nunca se copia.
 -->
 <full-backup-content>
-    <exclude domain="file" path="ticket_photos" />
+    <include domain="database" path="." requireFlags="clientSideEncryption" />
+    <include domain="database" path="." requireFlags="deviceToDeviceTransfer" />
+    <include domain="sharedpref" path="." requireFlags="clientSideEncryption" />
+    <include domain="sharedpref" path="." requireFlags="deviceToDeviceTransfer" />
+    <include domain="file" path="datastore/" requireFlags="clientSideEncryption" />
+    <include domain="file" path="datastore/" requireFlags="deviceToDeviceTransfer" />
+    <include domain="file" path="ticket_photos/" requireFlags="deviceToDeviceTransfer" />
 </full-backup-content>

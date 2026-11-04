@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Reglas de backup / device transfer.
+  Reglas de copia de seguridad y traspaso para Android 12 y posteriores.
 
   El backup en la nube tiene una cuota de 25 MB por app. Las fotos de ticket se copian
   sin recomprimir (2-5 MB cada una), así que con pocas garantías se supera la cuota y
@@ -8,11 +8,14 @@
   las fotos se excluyen solo del backup en la nube: es preferible recuperar las garantías
   sin fotos que no recuperar nada.
 
+  disableIfNoEncryptionCapabilities: si el móvil no puede cifrar la copia de extremo a
+  extremo (sin bloqueo de pantalla, por ejemplo), no se sube nada.
+
   El traspaso directo entre móviles (device-transfer) no tiene esa cuota, así que ahí sí
-  viajan las fotos.
+  viajan las fotos. El premium vive en noBackupFilesDir y no viaja en ninguno de los dos.
 -->
 <data-extraction-rules>
-    <cloud-backup>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
         <exclude domain="file" path="ticket_photos" />
     </cloud-backup>
     <device-transfer />
