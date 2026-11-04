@@ -1,6 +1,7 @@
 package com.miguelcode.warrantyvault
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
@@ -54,6 +55,11 @@ class MainActivity : ComponentActivity() {
         // Antes de super.onCreate: después, la ventana ya se ha creado con el tema del
         // manifiesto y el cambio no evita el fotograma del color equivocado.
         applyForcedWindowTheme()
+        // La app no recibe nada de fuera: ni deep links ni extras. Pero NavController lee
+        // del intent de arranque sus extras internos (deepLinkIds, deepLinkArgs) y otra app
+        // podía usarlos para abrir directamente cualquier pantalla, por ejemplo la de
+        // editar con un id elegido. Se vacían antes de montar el grafo.
+        intent = sanitized(intent)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // Sincroniza la preferencia con el estado real del permiso del sistema en cada
@@ -109,6 +115,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(sanitized(intent))
+    }
+
+    /** Copia del intent sin extras ni datos, conservando acción, categorías y flags. */
+    private fun sanitized(source: Intent): Intent = Intent(source).apply {
+        replaceExtras(Bundle())
+        data = null
     }
 
     override fun onResume() {
