@@ -8,6 +8,13 @@ plugins {
 // al resto de datos de publicación. Sin ella, PurchaseVerifier rechaza todas las compras.
 val playLicenseKey = (findProperty("WARRANTYVAULT_PLAY_LICENSE_KEY") as String?).orEmpty().trim()
 
+val signingProps: Map<String, String> = listOf(
+    "WARRANTYVAULT_KEYSTORE_PATH",
+    "WARRANTYVAULT_KEYSTORE_PASSWORD",
+    "WARRANTYVAULT_KEY_ALIAS",
+    "WARRANTYVAULT_KEY_PASSWORD"
+).mapNotNull { key -> (findProperty(key) as String?)?.takeIf { it.isNotBlank() }?.let { key to it } }.toMap()
+
 android {
     namespace = "com.miguelcode.warrantyvault"
     compileSdk = 36
@@ -26,23 +33,15 @@ android {
     }
 
     signingConfigs {
+        // Los cuatro datos salen de ~/.gradle/gradle.properties y nada más. Antes, si
+        // faltaba alguno, se caía en silencio a ../keystore/release.jks (una clave vieja
+        // que no es la de subida) y a contraseñas vacías. Si falta algo, el build de
+        // publicación falla con un mensaje claro (ver el final del fichero).
         create("release") {
-            // Prioridad: gradle.properties (global o local) > variables de entorno > fallback.
-            // En ~/.gradle/gradle.properties las pones una vez y funcionan tanto en CLI
-            // como en Android Studio sin tocar nada más.
-            val keystorePathProp = findProperty("WARRANTYVAULT_KEYSTORE_PATH") as String?
-                ?: System.getenv("KEYSTORE_PATH")
-                ?: "../keystore/release.jks"
-            storeFile = file(keystorePathProp)
-            storePassword = (findProperty("WARRANTYVAULT_KEYSTORE_PASSWORD") as String?)
-                ?: System.getenv("KEYSTORE_PASSWORD")
-                ?: ""
-            keyAlias = (findProperty("WARRANTYVAULT_KEY_ALIAS") as String?)
-                ?: System.getenv("KEY_ALIAS")
-                ?: ""
-            keyPassword = (findProperty("WARRANTYVAULT_KEY_PASSWORD") as String?)
-                ?: System.getenv("KEY_PASSWORD")
-                ?: ""
+            signingProps["WARRANTYVAULT_KEYSTORE_PATH"]?.let { storeFile = file(it) }
+            storePassword = signingProps["WARRANTYVAULT_KEYSTORE_PASSWORD"]
+            keyAlias = signingProps["WARRANTYVAULT_KEY_ALIAS"]
+            keyPassword = signingProps["WARRANTYVAULT_KEY_PASSWORD"]
         }
     }
 
@@ -125,10 +124,22 @@ dependencies {
 // quitaría el premium a quien ha pagado: mejor que el build falle con un mensaje claro.
 gradle.taskGraph.whenReady {
     val buildsRelease = allTasks.any { it.project == project && it.name.contains("Release") }
-    if (buildsRelease && playLicenseKey.isEmpty()) {
+    if (!buildsRelease) return@whenReady
+    if (playLicenseKey.isEmpty()) {
         throw GradleException(
             "Falta WARRANTYVAULT_PLAY_LICENSE_KEY en ~/.gradle/gradle.properties " +
                 "(Play Console > Monetizar > Configuración de monetización > Licencias)."
         )
     }
+    val missingSigning = listOf(
+        "WARRANTYVAULT_KEYSTORE_PATH",
+        "WARRANTYVAULT_KEYSTORE_PASSWORD",
+        "WARRANTYVAULT_KEY_ALIAS",
+        "WARRANTYVAULT_KEY_PASSWORD"
+    ).filterNot { it in signingProps }
+    if (missingSigning.isNotEmpty()) {
+        throw GradleException("Faltan en ~/.gradle/gradle.properties: " + missingSigning.joinToString())
+    }
+    val keystore = file(signingProps.getValue("WARRANTYVAULT_KEYSTORE_PATH"))
+    if (!keystore.isFile) throw GradleException("No existe el keystore de subida: $keystore")
 }
