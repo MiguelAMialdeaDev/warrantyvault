@@ -42,7 +42,10 @@ class WarrantyVaultApp : Application() {
         val syncAlerts = get<SyncExpirationAlertsUseCase>()
         val warrantyRepository = get<WarrantyRepository>()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            syncAlerts()
+            // Sin runCatching, cualquier fallo al leer la base de datos llegaba como
+            // excepción no capturada y cerraba la app en CADA arranque, sin salida. Los
+            // avisos se vuelven a intentar en el siguiente.
+            runCatching { syncAlerts() }
             // Fotos copiadas al elegirlas pero nunca guardadas (salir sin guardar, cambiar
             // de foto): sin este barrido ocupaban espacio para siempre.
             runCatching {
