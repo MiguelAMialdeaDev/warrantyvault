@@ -7,6 +7,7 @@ import com.miguelcode.warrantyvault.domain.repository.WarrantyRepository
 import com.miguelcode.warrantyvault.domain.usecase.DeleteWarrantyUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -31,7 +32,10 @@ class DetailViewModel(
      */
     private fun observeWarranty() {
         viewModelScope.launch {
-            warrantyRepository.getWarrantyByIdFlow(warrantyId).collect { warranty ->
+            warrantyRepository.getWarrantyByIdFlow(warrantyId)
+                // Un fallo leyendo Room cerraba la app; así se enseña el error genérico.
+                .catch { e -> _state.update { it.copy(isLoading = false, error = e.message ?: "error") } }
+                .collect { warranty ->
                 if (warranty == null) {
                     // Si nunca llegamos a cargarla, el id no existe (garantía borrada
                     // antes de restaurar el estado, enlace viejo): sin marcarlo, ninguna

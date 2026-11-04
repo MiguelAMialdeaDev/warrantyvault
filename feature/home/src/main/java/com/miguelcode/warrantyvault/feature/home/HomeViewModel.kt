@@ -6,6 +6,7 @@ import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import com.miguelcode.warrantyvault.domain.usecase.GetWarrantiesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
@@ -30,7 +31,10 @@ class HomeViewModel(
                 preferencesRepository.isPremiumFlow
             ) { warranties, isPremium ->
                 warranties to isPremium
-            }.collect { (warranties, isPremium) ->
+            }
+                // Un fallo leyendo Room cerraba la app; así se queda con la lista vacía.
+                .catch { _state.update { it.copy(isLoading = false) } }
+                .collect { (warranties, isPremium) ->
                 _state.update {
                     it.copy(
                         isLoading = false,
