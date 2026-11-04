@@ -5,7 +5,9 @@ import android.content.Context
 import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import com.miguelcode.warrantyvault.domain.util.PremiumValidity
+import java.io.File
 import java.io.IOException
 
 /**
@@ -29,7 +33,33 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
 )
 
-class PreferencesRepositoryImpl(private val context: Context) : PreferencesRepository {
+/**
+ * El premium vive aparte, en noBackupFilesDir, que Android no mete NUNCA en la copia de
+ * seguridad ni en el traspaso entre móviles. En el DataStore normal viajaba en la copia:
+ * en Android 8 a 11 bastaba editar un `adb backup`, restaurarlo y bloquear Play para
+ * ponerse premium sin pagar. En un móvil nuevo no se pierde nada: Play lo restaura en
+ * el primer arranque.
+ *
+ * DataStore exige una sola instancia por fichero en todo el proceso.
+ */
+private object BillingCacheStore {
+    @Volatile private var instance: DataStore<Preferences>? = null
+
+    fun get(context: Context): DataStore<Preferences> =
+        instance ?: synchronized(this) {
+            instance ?: PreferenceDataStoreFactory.create(
+                corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+                produceFile = { File(context.applicationContext.noBackupFilesDir, "billing_cache.preferences_pb") }
+            ).also { instance = it }
+        }
+}
+
+class PreferencesRepositoryImpl(
+    private val context: Context,
+    private val clock: () -> Long = System::currentTimeMillis
+) : PreferencesRepository {
+
+    private val billingCache: DataStore<Preferences> get() = BillingCacheStore.get(context)
 
     /**
      * `dataStore.data` lanza IOException si el fichero no se puede leer y
@@ -40,12 +70,20 @@ class PreferencesRepositoryImpl(private val context: Context) : PreferencesRepos
      * pierden las preferencias.
      */
     private val safeData: Flow<Preferences>
-        get() = context.dataStore.data.catch { e ->
-            if (e is IOException) emit(emptyPreferences()) else throw e
-        }
+        get() = context.dataStore.data.safe()
+
+    private fun Flow<Preferences>.safe(): Flow<Preferences> = catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
+    private fun Preferences.premiumActive(): Boolean = PremiumValidity.isActive(
+        flag = this[KEY_IS_PREMIUM] ?: false,
+        lastVerifiedAtMillis = this[KEY_PREMIUM_VERIFIED_AT] ?: 0L,
+        nowMillis = clock()
+    )
 
     override val isPremiumFlow: Flow<Boolean>
-        get() = safeData.map { it[KEY_IS_PREMIUM] ?: false }
+        get() = billingCache.data.safe().map { it.premiumActive() }
 
     override val isOnboardingDoneFlow: Flow<Boolean>
         get() = safeData.map { it[KEY_ONBOARDING_DONE] ?: false }
@@ -77,10 +115,16 @@ class PreferencesRepositoryImpl(private val context: Context) : PreferencesRepos
                 ?.areNotificationsEnabled() == true
 
     override suspend fun isPremium(): Boolean =
-        safeData.first()[KEY_IS_PREMIUM] ?: false
+        billingCache.data.safe().first().premiumActive()
 
+    /** Solo se llama con una respuesta de Play, así que también renueva la caducidad. */
     override suspend fun setIsPremium(value: Boolean) {
-        context.dataStore.edit { it[KEY_IS_PREMIUM] = value }
+        billingCache.edit {
+            it[KEY_IS_PREMIUM] = value
+            it[KEY_PREMIUM_VERIFIED_AT] = clock()
+        }
+        // Restos de la 1.0.1, que lo guardaba en el DataStore que sí va en la copia.
+        context.dataStore.edit { it.remove(KEY_IS_PREMIUM) }
     }
 
     override suspend fun setOnboardingDone() {
@@ -97,6 +141,7 @@ class PreferencesRepositoryImpl(private val context: Context) : PreferencesRepos
 
     companion object {
         private val KEY_IS_PREMIUM = booleanPreferencesKey("is_premium")
+        private val KEY_PREMIUM_VERIFIED_AT = longPreferencesKey("premium_verified_at")
         private val KEY_ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
         private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         private val KEY_NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
