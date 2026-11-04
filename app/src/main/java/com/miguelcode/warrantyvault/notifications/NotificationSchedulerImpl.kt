@@ -49,7 +49,6 @@ class NotificationSchedulerImpl(
 
             val inputData = Data.Builder()
                 .putLong(NotificationConstants.INPUT_WARRANTY_ID, warranty.id)
-                .putString(NotificationConstants.INPUT_PRODUCT_NAME, warranty.productName)
                 .putLong(NotificationConstants.INPUT_DAYS_LEFT, daysBefore)
                 .putLong(NotificationConstants.INPUT_END_DATE_EPOCH_DAY, endDate.toEpochDay())
                 .build()

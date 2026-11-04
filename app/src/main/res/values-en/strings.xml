@@ -14,6 +14,7 @@
     <string name="notif_message_days_left">Your %1$s warranty expires in %2$d days.</string>
     <string name="notif_title_expires_today">Your warranty expires today!</string>
     <string name="notif_message_expires_today">Your %1$s warranty expires today. Last chance to claim.</string>
+    <string name="notif_message_public">Open WarrantyVault to see which warranty it is.</string>
 
     <!-- Billing (BillingManager) -->
     <string name="billing_error_network">We could not reach Google Play. Check your connection and try again.</string>

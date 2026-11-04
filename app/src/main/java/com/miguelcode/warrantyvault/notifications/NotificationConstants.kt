@@ -26,6 +26,7 @@ object NotificationConstants {
 
     // Input data keys
     const val INPUT_WARRANTY_ID = "warranty_id"
+    /** Ya no se escribe: el worker lee el nombre de Room. Se conserva por los avisos viejos. */
     const val INPUT_PRODUCT_NAME = "product_name"
     const val INPUT_DAYS_LEFT = "days_left"
 

@@ -16,7 +16,9 @@ import com.miguelcode.warrantyvault.MainActivity
 import com.miguelcode.warrantyvault.R
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsEvents
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsTracker
+import com.miguelcode.warrantyvault.domain.model.Result as DomainResult
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
+import com.miguelcode.warrantyvault.domain.repository.WarrantyRepository
 import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -31,12 +33,19 @@ class WarrantyExpirationWorker(
     private val analytics: AnalyticsTracker by inject()
     private val preferencesRepository: PreferencesRepository by inject()
     private val deliveredAlerts: DeliveredAlertsStore by inject()
+    private val warrantyRepository: WarrantyRepository by inject()
 
     override suspend fun doWork(): Result {
         val warrantyId = inputData.getLong(NotificationConstants.INPUT_WARRANTY_ID, -1)
-        val productName = inputData.getString(NotificationConstants.INPUT_PRODUCT_NAME) ?: return Result.failure()
-
         if (warrantyId < 0) return Result.failure()
+
+        // La garantía se lee de Room en vez de llevar el nombre en el trabajo programado.
+        // Así la base de datos de WorkManager no guarda el nombre del producto (seguía ahí
+        // días después de borrar la garantía) y un aviso que se cuela tras borrarla o
+        // cambiar su fecha ya no se muestra.
+        val warranty = (warrantyRepository.getWarrantyById(warrantyId) as? DomainResult.Success)?.data
+            ?: return Result.success()
+        val productName = warranty.productName
 
         // Última comprobación antes de molestar al usuario: un worker encolado sobrevive
         // a que apague el interruptor, y cancelar trabajo en WorkManager no es inmediato.
@@ -49,6 +58,9 @@ class WarrantyExpirationWorker(
             NotificationConstants.INPUT_END_DATE_EPOCH_DAY,
             NO_END_DATE
         )
+        if (endDateEpochDay != NO_END_DATE && endDateEpochDay != warranty.warrantyEndDate.toEpochDay()) {
+            return Result.success()
+        }
         val daysLeft = if (endDateEpochDay != NO_END_DATE) {
             ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.ofEpochDay(endDateEpochDay))
         } else {
@@ -123,6 +135,16 @@ class WarrantyExpirationWorker(
             .setAutoCancel(true)
             // El aviso del día en curso puede reencolarse al abrir la app; con el mismo
             // id, esto actualiza la notificación en silencio en vez de volver a sonar.
+            // Con "ocultar contenido sensible" en la pantalla de bloqueo se ve esta versión
+            // sin el nombre del producto, en lugar de un aviso vacío.
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(
+                NotificationCompat.Builder(context, NotificationConstants.CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(title)
+                    .setContentText(context.getString(R.string.notif_message_public))
+                    .build()
+            )
             .setOnlyAlertOnce(true)
             .build()
 

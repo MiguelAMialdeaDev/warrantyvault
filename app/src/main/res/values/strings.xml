@@ -15,6 +15,7 @@
     <string name="notif_message_days_left">La garantía de %1$s expira en %2$d días.</string>
     <string name="notif_title_expires_today">¡Hoy vence tu garantía!</string>
     <string name="notif_message_expires_today">La garantía de %1$s vence hoy. Última oportunidad para reclamar.</string>
+    <string name="notif_message_public">Abre WarrantyVault para ver qué garantía es.</string>
 
     <!-- Billing (BillingManager) -->
     <string name="billing_error_network">No hemos podido conectar con Google Play. Revisa tu conexión y vuelve a intentarlo.</string>
