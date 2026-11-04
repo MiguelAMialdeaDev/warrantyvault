@@ -1,5 +1,7 @@
 package com.miguelcode.warrantyvault.feature.addedit.components
 
+import androidx.compose.runtime.remember
+import java.io.File
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,6 +37,8 @@ fun PhotoPickerBox(
     isLoading: Boolean = false
 ) {
     val shape = RoundedCornerShape(16.dp)
+    // File y no String: así Coil solo lee del disco (ver WarrantyHero).
+    val photoFile = remember(photoPath) { photoPath?.let(::File)?.takeIf { it.isFile } }
 
     if (isLoading) {
         // Copiar una foto que solo está en la nube tarda: sin este indicador la pantalla
@@ -50,9 +54,9 @@ fun PhotoPickerBox(
         ) {
             CircularProgressIndicator()
         }
-    } else if (photoPath != null) {
+    } else if (photoFile != null) {
         AsyncImage(
-            model = photoPath,
+            model = photoFile,
             contentDescription = stringResource(R.string.addedit_photo_ticket),
             modifier = modifier
                 .fillMaxWidth()

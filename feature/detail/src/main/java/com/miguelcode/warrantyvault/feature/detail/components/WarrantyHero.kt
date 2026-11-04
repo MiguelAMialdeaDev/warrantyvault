@@ -1,5 +1,7 @@
 package com.miguelcode.warrantyvault.feature.detail.components
 
+import androidx.compose.runtime.remember
+import java.io.File
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,9 +35,14 @@ fun WarrantyHero(
         modifier = modifier.fillMaxWidth().height(220.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (photoPath != null) {
+        // Se pasa un File y no la ruta como texto: con un String, Coil elige cómo cargarlo
+        // por el esquema, y una ruta manipulada con http:// o content:// acabaría en una
+        // petición de red o leyendo de otra app. Tras restaurar una copia en la nube las
+        // fotos no viajan: si el fichero falta, se enseña el icono de la categoría.
+        val photoFile = remember(photoPath) { photoPath?.let(::File)?.takeIf { it.isFile } }
+        if (photoFile != null) {
             AsyncImage(
-                model = photoPath,
+                model = photoFile,
                 contentDescription = stringResource(R.string.detail_photo_ticket),
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop
