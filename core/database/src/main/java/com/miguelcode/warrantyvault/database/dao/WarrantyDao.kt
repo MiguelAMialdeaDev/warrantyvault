@@ -20,7 +20,9 @@ interface WarrantyDao {
     @Query("SELECT * FROM warranties WHERE id = :id")
     fun getWarrantyByIdFlow(id: Long): Flow<WarrantyEntity?>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // ABORT y no REPLACE: un alta nunca debe sobrescribir una garantía que ya existe.
+    // Con REPLACE, un id repetido borraba la fila anterior en silencio.
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(warranty: WarrantyEntity): Long
 
     @Update
