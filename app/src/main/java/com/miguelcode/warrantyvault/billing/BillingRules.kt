@@ -2,6 +2,7 @@ package com.miguelcode.warrantyvault.billing
 
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
+import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 
 /**
  * Decisiones de la ruta del dinero, separadas del cliente de Play para poder fijarlas con
@@ -14,20 +15,33 @@ import com.android.billingclient.api.Purchase
  */
 internal object BillingRules {
 
+    /** Los únicos productos que desbloquean premium. */
+    val PREMIUM_PRODUCTS = setOf(
+        BillingManagerContract.PRODUCT_MONTHLY,
+        BillingManagerContract.PRODUCT_YEARLY
+    )
+
     /**
-     * Compras realmente pagadas. PENDING (efectivo, transferencia) todavía no lo está, así
-     * que no cuenta ni para dar premium ni para confirmar.
+     * Compras realmente pagadas, de esta app y de uno de nuestros productos premium.
+     * PENDING (efectivo, transferencia) todavía no está pagada, así que no cuenta ni para
+     * dar premium ni para confirmar. Sin el filtro de producto y paquete, cualquier
+     * suscripción que se creara en el futuro (o una compra falsa con otro paquete
+     * inyectada por un cliente de billing manipulado) daba premium.
      */
-    fun activePurchases(purchases: List<Purchase>): List<Purchase> =
-        purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+    fun activePurchases(purchases: List<Purchase>, packageName: String): List<Purchase> =
+        purchases.filter { purchase ->
+            purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+                purchase.packageName == packageName &&
+                purchase.products.any { it in PREMIUM_PRODUCTS }
+        }
 
     /** Compras pagadas que quedaron sin confirmar y hay que reintentar. */
-    fun needingAcknowledgement(purchases: List<Purchase>): List<Purchase> =
-        activePurchases(purchases).filterNot { it.isAcknowledged }
+    fun needingAcknowledgement(purchases: List<Purchase>, packageName: String): List<Purchase> =
+        activePurchases(purchases, packageName).filterNot { it.isAcknowledged }
 
-    /** Premium activo si Play devuelve al menos una compra pagada. */
-    fun hasPremium(purchases: List<Purchase>): Boolean =
-        activePurchases(purchases).isNotEmpty()
+    /** Premium activo si Play devuelve al menos una compra pagada válida. */
+    fun hasPremium(purchases: List<Purchase>, packageName: String): Boolean =
+        activePurchases(purchases, packageName).isNotEmpty()
 
     /**
      * Fase de precio que se enseña al usuario: la ÚLTIMA del ciclo. Las anteriores pueden

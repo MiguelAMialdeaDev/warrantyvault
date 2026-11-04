@@ -3,6 +3,7 @@ package com.miguelcode.warrantyvault
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.miguelcode.warrantyvault.billing.BillingRules
+import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -18,9 +19,42 @@ import org.junit.Test
  */
 class BillingRulesTest {
 
-    private fun purchase(state: Int, acknowledged: Boolean): Purchase = mockk {
+    private fun purchase(
+        state: Int,
+        acknowledged: Boolean,
+        pkg: String = PKG,
+        product: String = BillingManagerContract.PRODUCT_MONTHLY
+    ): Purchase = mockk {
         every { purchaseState } returns state
         every { isAcknowledged } returns acknowledged
+        every { packageName } returns pkg
+        every { products } returns listOf(product)
+    }
+
+    @Test
+    fun `a purchase for another package does not grant premium`() {
+        val foreign = purchase(Purchase.PurchaseState.PURCHASED, acknowledged = true, pkg = "com.otra.app")
+
+        assertFalse(BillingRules.hasPremium(listOf(foreign), PKG))
+    }
+
+    @Test
+    fun `a subscription that is not premium does not grant premium`() {
+        val other = purchase(Purchase.PurchaseState.PURCHASED, acknowledged = true, product = "otro_producto")
+
+        assertFalse(BillingRules.hasPremium(listOf(other), PKG))
+        assertTrue(BillingRules.needingAcknowledgement(listOf(other), PKG).isEmpty())
+    }
+
+    @Test
+    fun `the yearly plan grants premium too`() {
+        val yearly = purchase(
+            Purchase.PurchaseState.PURCHASED,
+            acknowledged = true,
+            product = BillingManagerContract.PRODUCT_YEARLY
+        )
+
+        assertTrue(BillingRules.hasPremium(listOf(yearly), PKG))
     }
 
     private fun phase(price: String): ProductDetails.PricingPhase = mockk {
@@ -31,12 +65,12 @@ class BillingRulesTest {
     fun `a paid purchase grants premium`() {
         val purchases = listOf(purchase(Purchase.PurchaseState.PURCHASED, acknowledged = true))
 
-        assertTrue(BillingRules.hasPremium(purchases))
+        assertTrue(BillingRules.hasPremium(purchases, PKG))
     }
 
     @Test
     fun `no purchases means no premium`() {
-        assertFalse(BillingRules.hasPremium(emptyList()))
+        assertFalse(BillingRules.hasPremium(emptyList(), PKG))
     }
 
     @Test
@@ -44,28 +78,28 @@ class BillingRulesTest {
         // Pago diferido en efectivo o transferencia: todavía no hay dinero.
         val purchases = listOf(purchase(Purchase.PurchaseState.PENDING, acknowledged = false))
 
-        assertFalse(BillingRules.hasPremium(purchases))
+        assertFalse(BillingRules.hasPremium(purchases, PKG))
     }
 
     @Test
     fun `an unspecified purchase does not grant premium`() {
         val purchases = listOf(purchase(Purchase.PurchaseState.UNSPECIFIED_STATE, acknowledged = false))
 
-        assertFalse(BillingRules.hasPremium(purchases))
+        assertFalse(BillingRules.hasPremium(purchases, PKG))
     }
 
     @Test
     fun `an unacknowledged paid purchase needs acknowledgement`() {
         val pending = purchase(Purchase.PurchaseState.PURCHASED, acknowledged = false)
 
-        assertEquals(listOf(pending), BillingRules.needingAcknowledgement(listOf(pending)))
+        assertEquals(listOf(pending), BillingRules.needingAcknowledgement(listOf(pending), PKG))
     }
 
     @Test
     fun `an already acknowledged purchase is not acknowledged again`() {
         val done = purchase(Purchase.PurchaseState.PURCHASED, acknowledged = true)
 
-        assertTrue(BillingRules.needingAcknowledgement(listOf(done)).isEmpty())
+        assertTrue(BillingRules.needingAcknowledgement(listOf(done), PKG).isEmpty())
     }
 
     @Test
@@ -73,7 +107,7 @@ class BillingRulesTest {
         // Confirmar una compra que aún no se ha pagado la daría por buena.
         val pending = purchase(Purchase.PurchaseState.PENDING, acknowledged = false)
 
-        assertTrue(BillingRules.needingAcknowledgement(listOf(pending)).isEmpty())
+        assertTrue(BillingRules.needingAcknowledgement(listOf(pending), PKG).isEmpty())
     }
 
     @Test
@@ -81,7 +115,7 @@ class BillingRulesTest {
         val paid = purchase(Purchase.PurchaseState.PURCHASED, acknowledged = true)
         val pending = purchase(Purchase.PurchaseState.PENDING, acknowledged = false)
 
-        assertEquals(listOf(paid), BillingRules.activePurchases(listOf(paid, pending)))
+        assertEquals(listOf(paid), BillingRules.activePurchases(listOf(paid, pending), PKG))
     }
 
     @Test
@@ -136,5 +170,9 @@ class BillingRulesTest {
     @Test
     fun `no offers means nothing to buy`() {
         assertNull(BillingRules.purchaseOffer(emptyList()))
+    }
+
+    private companion object {
+        const val PKG = "com.miguelcode.warrantyvault"
     }
 }

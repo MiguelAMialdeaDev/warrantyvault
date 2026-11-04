@@ -246,12 +246,12 @@ class BillingManager(
         // Reintenta el acknowledge de compras que quedaron a medias en sesiones
         // anteriores. Play reembolsa automáticamente a las 72 h toda compra que nunca
         // se confirma, así que este barrido en cada arranque es la última red de seguridad.
-        BillingRules.needingAcknowledgement(result.second).forEach { acknowledgeWithRetry(it) }
+        BillingRules.needingAcknowledgement(result.second, appContext.packageName).forEach { acknowledgeWithRetry(it) }
 
         // Aquí está la revocación: si Play ya no devuelve la suscripción (cancelada,
         // caducada, reembolsada) el flag local baja a false. Y si la devuelve tras
         // reinstalar o cambiar de móvil, se restaura sola.
-        val hasPremium = BillingRules.hasPremium(result.second)
+        val hasPremium = BillingRules.hasPremium(result.second, appContext.packageName)
         preferencesRepository.setIsPremium(hasPremium)
         _stateCode.value = if (hasPremium) STATE_PURCHASED else STATE_IDLE
     }
@@ -298,6 +298,11 @@ class BillingManager(
     private fun handlePurchase(purchase: Purchase) {
         when (purchase.purchaseState) {
             Purchase.PurchaseState.PURCHASED -> {
+                // Mismo filtro que la revalidación: una compra de otro paquete o de un
+                // producto que no es premium no se confirma ni da premium.
+                if (BillingRules.activePurchases(listOf(purchase), appContext.packageName).isEmpty()) {
+                    return
+                }
                 if (purchase.isAcknowledged) {
                     grantPremium()
                 } else {
