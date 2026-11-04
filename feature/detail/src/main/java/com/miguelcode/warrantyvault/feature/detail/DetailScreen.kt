@@ -118,7 +118,8 @@ fun DetailScreen(
             }
             state.error != null -> {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(state.error!!, color = MaterialTheme.colorScheme.error)
+                    // Nunca el mensaje de la excepción: puede llevar SQL o rutas internas.
+                    Text(stringResource(R.string.detail_error_generic), color = MaterialTheme.colorScheme.error)
                 }
             }
             state.warranty != null -> {

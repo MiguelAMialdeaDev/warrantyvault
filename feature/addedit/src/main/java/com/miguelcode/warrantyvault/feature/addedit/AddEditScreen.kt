@@ -103,6 +103,10 @@ fun AddEditScreen(
         if (state.isSaved) onNavigateBack()
     }
 
+    LaunchedEffect(state.notFound) {
+        if (state.notFound) onNavigateBack()
+    }
+
     // Sin esto, un guardado fallido era invisible: el ViewModel dejaba el error en el
     // estado, la pantalla no lo leía, y el usuario veía que el botón simplemente no hacía
     // nada. `formError` es localizable (límite premium) y `error` viene del use case.
@@ -117,9 +121,11 @@ fun AddEditScreen(
         viewModel.onFormErrorShown()
     }
 
+    // Nunca se enseña el mensaje de la excepción: puede llevar SQL o rutas internas.
+    val genericError = stringResource(R.string.addedit_error_generic)
     LaunchedEffect(state.error) {
-        val message = state.error ?: return@LaunchedEffect
-        snackbarHostState.showSnackbar(message)
+        if (state.error == null) return@LaunchedEffect
+        snackbarHostState.showSnackbar(genericError)
         viewModel.onErrorShown()
     }
 
@@ -298,6 +304,12 @@ fun AddEditScreen(
                 onValueChange = viewModel::onNotesChanged,
                 label = { Text(stringResource(R.string.addedit_field_notes)) },
                 minLines = 3,
+                // Las notas suelen llevar números de serie o de pedido: sin autocorrector,
+                // el teclado no los aprende ni los sugiere luego en otras apps.
+                keyboardOptions = KeyboardOptions(autoCorrect = false),
+                supportingText = {
+                    Text("${state.notes.length} / ${AddEditViewModel.MAX_NOTES_LENGTH}")
+                },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
 

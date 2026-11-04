@@ -90,8 +90,11 @@ class AddEditViewModel(
                         )
                     }
                 }
+                // La garantía ya no existe (borrada en otra pantalla, id inventado): se cierra
+                // la pantalla. Antes se quedaba como un alta vacía que, al guardar, insertaba
+                // con el id pedido.
                 is Result.Error -> updateState {
-                    it.copy(isLoading = false, error = result.exception.message)
+                    it.copy(isLoading = false, notFound = true)
                 }
             }
         }
@@ -118,11 +121,16 @@ class AddEditViewModel(
     }
 
     fun onStoreChanged(store: String) {
-        updateState { it.copy(store = store) }
+        updateState { it.copy(store = store.take(MAX_STORE_LENGTH)) }
     }
 
+    /**
+     * Solo cifras y separadores, con tope de longitud. Pegar "1e308" o una cadena enorme
+     * llegaba tal cual al parser y al estado guardado.
+     */
     fun onPriceChanged(price: String) {
-        updateState { it.copy(price = price) }
+        val cleaned = price.filter { it.isDigit() || it == ',' || it == '.' }.take(MAX_PRICE_LENGTH)
+        updateState { it.copy(price = cleaned) }
     }
 
     fun onPurchaseDateChanged(date: LocalDate) {
@@ -166,8 +174,12 @@ class AddEditViewModel(
         }
     }
 
+    /**
+     * Sin tope, unas notas muy largas hacían crecer el estado guardado en cada pulsación
+     * (el sistema lo limita a ~1 MB por proceso) y podían no caber al leer la fila.
+     */
     fun onNotesChanged(notes: String) {
-        updateState { it.copy(notes = notes) }
+        updateState { it.copy(notes = notes.take(MAX_NOTES_LENGTH)) }
     }
 
     private fun validateAndRecalculate() {
@@ -232,7 +244,8 @@ class AddEditViewModel(
 
         viewModelScope.launch {
             val warranty = Warranty(
-                id = warrantyId ?: 0,
+                // Solo se conserva el id si de verdad se cargó esa garantía para editarla.
+                id = if (current.isEditMode) warrantyId ?: 0 else 0,
                 productName = current.productName.trim(),
                 category = current.category,
                 store = current.store.trim(),
@@ -303,17 +316,17 @@ class AddEditViewModel(
         val purchaseEpochDay = handle.get<Long>(KEY_PURCHASE_DATE) ?: NO_DATE
         return AddEditState(
             isEditMode = handle.get<Boolean>(KEY_EDIT_MODE) ?: false,
-            productName = handle.get<String>(KEY_PRODUCT_NAME).orEmpty(),
+            productName = handle.get<String>(KEY_PRODUCT_NAME).orEmpty().take(MAX_PRODUCT_NAME_LENGTH),
             category = handle.get<String>(KEY_CATEGORY)
                 ?.let { name -> WarrantyCategory.entries.firstOrNull { it.name == name } }
                 ?: WarrantyCategory.ELECTRONICS,
-            store = handle.get<String>(KEY_STORE).orEmpty(),
-            price = handle.get<String>(KEY_PRICE).orEmpty(),
+            store = handle.get<String>(KEY_STORE).orEmpty().take(MAX_STORE_LENGTH),
+            price = handle.get<String>(KEY_PRICE).orEmpty().take(MAX_PRICE_LENGTH),
             purchaseDate = purchaseEpochDay.takeIf { it != NO_DATE }?.let(LocalDate::ofEpochDay),
             warrantyMonths = handle.get<String>(KEY_MONTHS).orEmpty(),
             isYears = handle.get<Boolean>(KEY_IS_YEARS) ?: false,
             receiptPhotoPath = handle.get<String>(KEY_PHOTO),
-            notes = handle.get<String>(KEY_NOTES).orEmpty(),
+            notes = handle.get<String>(KEY_NOTES).orEmpty().take(MAX_NOTES_LENGTH),
             createdAt = handle.get<String>(KEY_CREATED_AT)
                 ?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
         )
@@ -323,6 +336,9 @@ class AddEditViewModel(
         private const val MAX_WARRANTY_MONTHS = 600L // 50 años
         private const val MAX_INPUT_DIGITS = 4 // 9999 cabe sobrado en Long
         const val MAX_PRODUCT_NAME_LENGTH = 60
+        const val MAX_STORE_LENGTH = 80
+        const val MAX_NOTES_LENGTH = 2000
+        private const val MAX_PRICE_LENGTH = 12
 
         /** Centinela: SavedStateHandle no distingue "sin fecha" de un epochDay legítimo. */
         private const val NO_DATE = Long.MIN_VALUE

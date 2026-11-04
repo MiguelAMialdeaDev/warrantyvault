@@ -5,6 +5,7 @@
     <string name="detail_action_delete">Delete</string>
     <string name="detail_photo_ticket">Receipt photo</string>
     <string name="detail_not_found">This warranty no longer exists.</string>
+    <string name="detail_error_generic">Something went wrong. Please try again.</string>
 
     <string name="detail_purchased_on">Purchased %1$s</string>
     <string name="detail_expires_on">Expires %1$s</string>

@@ -20,6 +20,8 @@ data class AddEditState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
+    /** La garantía que se pidió editar no existe: la pantalla se cierra. */
+    val notFound: Boolean = false,
     val productName: String = "",
     val productNameError: AddEditError? = null,
     val category: WarrantyCategory = WarrantyCategory.ELECTRONICS,

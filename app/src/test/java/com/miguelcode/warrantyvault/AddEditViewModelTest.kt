@@ -13,6 +13,7 @@ import com.miguelcode.warrantyvault.feature.addedit.AddEditViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -391,5 +392,45 @@ class AddEditViewModelTest {
             vm.onCategoryChanged(WarrantyCategory.GAMING)
             assertEquals(WarrantyCategory.GAMING, awaitItem().category)
         }
+    }
+
+    @Test
+    fun `editing a warranty that no longer exists closes the screen`() = runTest {
+        coEvery { getWarrantyByIdUseCase(42L) } returns Result.Error(NoSuchElementException("x"))
+
+        val vm = createViewModel(warrantyId = 42L)
+
+        assertTrue(vm.state.value.notFound)
+        assertFalse(vm.state.value.isEditMode)
+    }
+
+    @Test
+    fun `a new warranty is always inserted with a generated id`() = runTest {
+        // Aunque llegue un id (pantalla de editar de una garantía que no se cargó), el
+        // alta no puede forzarlo: con REPLACE habría pisado otra fila.
+        coEvery { getWarrantyByIdUseCase(7L) } returns Result.Error(NoSuchElementException("x"))
+        coEvery { checkPremiumLimitUseCase() } returns true
+        val saved = slot<Warranty>()
+        coEvery { addWarrantyUseCase(capture(saved)) } returns Result.Success(1L)
+
+        val vm = createViewModel(warrantyId = 7L)
+        vm.fillValidForm()
+        vm.onSave()
+
+        assertEquals(0L, saved.captured.id)
+    }
+
+    @Test
+    fun `store notes and price are capped and the price keeps only numbers`() = runTest {
+        coEvery { checkPremiumLimitUseCase() } returns true
+        val vm = createViewModel()
+
+        vm.onStoreChanged("t".repeat(500))
+        vm.onNotesChanged("n".repeat(10_000))
+        vm.onPriceChanged("1e308")
+
+        assertEquals(AddEditViewModel.MAX_STORE_LENGTH, vm.state.value.store.length)
+        assertEquals(AddEditViewModel.MAX_NOTES_LENGTH, vm.state.value.notes.length)
+        assertEquals("1308", vm.state.value.price)
     }
 }
