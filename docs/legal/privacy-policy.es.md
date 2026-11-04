@@ -1,6 +1,6 @@
-# Política de Privacidad — WarrantyVault
+# Política de Privacidad de WarrantyVault
 
-**Última actualización:** 3 de noviembre de 2026
+**Última actualización:** 4 de noviembre de 2026
 
 ## Resumen
 
@@ -18,7 +18,9 @@ Nosotros no recibimos ninguno de estos datos: no disponemos de servidores ni de 
 
 ### Copia de seguridad de Android
 
-WarrantyVault utiliza el sistema de copia de seguridad de Android. Si tienes activada la copia de seguridad de Google en tu dispositivo, tus garantías, tus preferencias y las fotos de tus tickets se respaldan **en tu propia cuenta de Google**, cifradas, igual que ocurre con las demás aplicaciones que tengas instaladas. Sirve para que puedas recuperar tus datos al cambiar de móvil o al reinstalar la aplicación.
+WarrantyVault utiliza el sistema de copia de seguridad de Android. Si tienes activada la copia de seguridad de Google en tu dispositivo, tus garantías y tus preferencias se respaldan **en tu propia cuenta de Google**, cifradas, igual que ocurre con las demás aplicaciones que tengas instaladas. Sirve para que puedas recuperar tus datos al cambiar de móvil o al reinstalar la aplicación.
+
+Las fotos de los tickets **no** van en esa copia en la nube, por el límite de tamaño que pone Google. Solo pasan al móvil nuevo si, al configurarlo, haces un traspaso directo desde el antiguo (por cable o por wifi). El estado de tu suscripción Premium tampoco se copia: Google Play lo restaura solo en el móvil nuevo.
 
 Esa copia es tuya y está bajo tu control: nosotros no tenemos acceso a ella en ningún momento. Puedes desactivarla cuando quieras desde los ajustes de tu dispositivo, en la sección de copia de seguridad de Google.
 
@@ -27,7 +29,7 @@ Esa copia es tuya y está bajo tu control: nosotros no tenemos acceso a ella en 
 - **Notificaciones (Android 13+):** para enviarte recordatorios cuando una garantía esté próxima a vencer.
 - **Facturación (Google Play Billing):** para procesar las suscripciones Premium a través de Google Play.
 
-La aplicación incluye el permiso de Internet porque lo exige la librería de pagos de Google Play. **Solo se usa para comunicarse con Google Play y validar la suscripción**: tus garantías, fotos y preferencias nunca se envían a ningún sitio.
+La aplicación incluye el permiso de Internet porque lo exige la librería de pagos de Google Play. Esa librería se comunica con Google Play para gestionar tu suscripción y, además, envía a Google datos técnicos de diagnóstico sobre su propio funcionamiento, sujetos a la [Política de Privacidad de Google](https://policies.google.com/privacy). **Tus garantías, fotos y preferencias nunca se envían a ningún sitio.**
 
 ## 3. Suscripciones Premium
 
@@ -37,7 +39,7 @@ WarrantyVault solo recibe de Google Play la confirmación de que tu suscripción
 
 ## 4. Compartir con terceros
 
-**No compartimos tus datos con nadie.** La aplicación no contiene servicios de analítica (analytics), seguimiento (tracking) ni publicidad. La única comunicación externa es con Google Play, exclusivamente para validar suscripciones.
+**No compartimos tus datos con nadie.** La aplicación no contiene servicios de analítica (analytics), seguimiento (tracking) ni publicidad. La única comunicación externa es la de la librería de pagos de Google Play, descrita en el apartado 2.
 
 ## 5. Tus derechos
 
@@ -57,4 +59,4 @@ Si actualizamos esta política, publicaremos la nueva versión en esta misma URL
 
 Para cualquier pregunta sobre privacidad puedes escribirnos a: **miguelmialdeamonzo@gmail.com**
 
-WarrantyVault — desarrollado por **MiguelCode**.
+WarrantyVault, desarrollado por **MiguelCode**.

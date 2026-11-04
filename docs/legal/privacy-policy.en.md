@@ -1,6 +1,6 @@
-# Privacy Policy — WarrantyVault
+# WarrantyVault Privacy Policy
 
-**Last updated:** November 3, 2026
+**Last updated:** November 4, 2026
 
 ## Summary
 
@@ -18,7 +18,9 @@ We never receive any of this data: we do not have servers nor any access to your
 
 ### Android backup
 
-WarrantyVault uses Android's backup system. If you have Google backup enabled on your device, your warranties, your preferences and your receipt photos are backed up **to your own Google account**, encrypted, in the same way as the rest of the apps you have installed. This is what lets you restore your data when you switch phones or reinstall the app.
+WarrantyVault uses Android's backup system. If you have Google backup enabled on your device, your warranties and your preferences are backed up **to your own Google account**, encrypted, in the same way as the rest of the apps you have installed. This is what lets you restore your data when you switch phones or reinstall the app.
+
+Receipt photos are **not** included in that cloud backup, because of the size limit Google sets. They only move to a new phone if you do a direct transfer from the old one (by cable or Wi-Fi) while setting it up. Your Premium subscription status is not copied either: Google Play restores it on the new phone by itself.
 
 That backup is yours and under your control: we have no access to it at any point. You can turn it off at any time from your device settings, under Google backup.
 
@@ -27,7 +29,7 @@ That backup is yours and under your control: we have no access to it at any poin
 - **Notifications (Android 13+):** to send you reminders when a warranty is about to expire.
 - **Billing (Google Play Billing):** to process Premium subscriptions through Google Play.
 
-The app includes the Internet permission because the Google Play billing library requires it. **It is only used to talk to Google Play and validate your subscription**: your warranties, photos and preferences are never sent anywhere.
+The app includes the Internet permission because the Google Play billing library requires it. That library talks to Google Play to manage your subscription and also sends Google technical diagnostic data about its own operation, subject to [Google's Privacy Policy](https://policies.google.com/privacy). **Your warranties, photos and preferences are never sent anywhere.**
 
 ## 3. Premium subscriptions
 
@@ -37,7 +39,7 @@ WarrantyVault only receives from Google Play the confirmation that your subscrip
 
 ## 4. Sharing with third parties
 
-**We do not share your data with anyone.** The app contains no analytics, tracking or advertising services. The only external communication is with Google Play, exclusively to validate subscriptions.
+**We do not share your data with anyone.** The app contains no analytics, tracking or advertising services. The only external communication is the Google Play billing library's, described in section 2.
 
 ## 5. Your rights
 
@@ -57,4 +59,4 @@ If we update this policy, we will publish the new version at this same URL with 
 
 For any privacy-related questions, please reach out to: **miguelmialdeamonzo@gmail.com**
 
-WarrantyVault — developed by **MiguelCode**.
+WarrantyVault, developed by **MiguelCode**.
