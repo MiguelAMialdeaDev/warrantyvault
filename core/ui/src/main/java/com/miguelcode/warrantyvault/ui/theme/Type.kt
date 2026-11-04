@@ -1,27 +1,35 @@
 package com.miguelcode.warrantyvault.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.miguelcode.warrantyvault.ui.R
 
-val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
+/**
+ * Nunito va dentro de la app (fuente variable, licencia OFL en docs/licenses).
+ *
+ * Antes se pedía a Google Fonts a través de Play services, pero los certificados del
+ * proveedor que había en el proyecto estaban corruptos: la descarga nunca se validaba y
+ * la app salía siempre con la fuente del sistema. Empaquetada no depende de Play
+ * services ni de la red, y no hay ninguna petición que explicar en la política.
+ */
+@OptIn(ExperimentalTextApi::class)
+private fun nunito(weight: FontWeight) = Font(
+    resId = R.font.nunito,
+    weight = weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight))
 )
 
-val NunitoFont = GoogleFont("Nunito")
-
 val NunitoFontFamily = FontFamily(
-    Font(googleFont = NunitoFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = NunitoFont, fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = NunitoFont, fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = NunitoFont, fontProvider = provider, weight = FontWeight.Bold),
+    nunito(FontWeight.Normal),
+    nunito(FontWeight.Medium),
+    nunito(FontWeight.SemiBold),
+    nunito(FontWeight.Bold),
 )
 
 val Typography = Typography(
