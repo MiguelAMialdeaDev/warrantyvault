@@ -3,6 +3,11 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Clave pública de licencias de Play (Play Console > Monetizar > Configuración de
+// monetización > Licencias). No es secreta, pero va en ~/.gradle/gradle.properties junto
+// al resto de datos de publicación. Sin ella, PurchaseVerifier rechaza todas las compras.
+val playLicenseKey = (findProperty("WARRANTYVAULT_PLAY_LICENSE_KEY") as String?).orEmpty().trim()
+
 android {
     namespace = "com.miguelcode.warrantyvault"
     compileSdk = 36
@@ -17,6 +22,7 @@ android {
         versionCode = 2
         versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "PLAY_LICENSE_KEY", "\"$playLicenseKey\"")
     }
 
     signingConfigs {
@@ -113,4 +119,16 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.10")
     testImplementation("app.cash.turbine:turbine:1.1.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+}
+
+// Una versión de publicación sin la clave de licencias rechazaría todas las compras y le
+// quitaría el premium a quien ha pagado: mejor que el build falle con un mensaje claro.
+gradle.taskGraph.whenReady {
+    val buildsRelease = allTasks.any { it.project == project && it.name.contains("Release") }
+    if (buildsRelease && playLicenseKey.isEmpty()) {
+        throw GradleException(
+            "Falta WARRANTYVAULT_PLAY_LICENSE_KEY en ~/.gradle/gradle.properties " +
+                "(Play Console > Monetizar > Configuración de monetización > Licencias)."
+        )
+    }
 }

@@ -28,20 +28,34 @@ internal object BillingRules {
      * suscripción que se creara en el futuro (o una compra falsa con otro paquete
      * inyectada por un cliente de billing manipulado) daba premium.
      */
-    fun activePurchases(purchases: List<Purchase>, packageName: String): List<Purchase> =
+    fun activePurchases(
+        purchases: List<Purchase>,
+        packageName: String,
+        isAuthentic: (Purchase) -> Boolean
+    ): List<Purchase> =
         purchases.filter { purchase ->
             purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
                 purchase.packageName == packageName &&
-                purchase.products.any { it in PREMIUM_PRODUCTS }
+                purchase.products.any { it in PREMIUM_PRODUCTS } &&
+                // La firma va la última: es la comprobación cara.
+                isAuthentic(purchase)
         }
 
     /** Compras pagadas que quedaron sin confirmar y hay que reintentar. */
-    fun needingAcknowledgement(purchases: List<Purchase>, packageName: String): List<Purchase> =
-        activePurchases(purchases, packageName).filterNot { it.isAcknowledged }
+    fun needingAcknowledgement(
+        purchases: List<Purchase>,
+        packageName: String,
+        isAuthentic: (Purchase) -> Boolean
+    ): List<Purchase> =
+        activePurchases(purchases, packageName, isAuthentic).filterNot { it.isAcknowledged }
 
     /** Premium activo si Play devuelve al menos una compra pagada válida. */
-    fun hasPremium(purchases: List<Purchase>, packageName: String): Boolean =
-        activePurchases(purchases, packageName).isNotEmpty()
+    fun hasPremium(
+        purchases: List<Purchase>,
+        packageName: String,
+        isAuthentic: (Purchase) -> Boolean
+    ): Boolean =
+        activePurchases(purchases, packageName, isAuthentic).isNotEmpty()
 
     /**
      * Fase de precio que se enseña al usuario: la ÚLTIMA del ciclo. Las anteriores pueden

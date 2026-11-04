@@ -13,6 +13,7 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.miguelcode.warrantyvault.BuildConfig
 import com.miguelcode.warrantyvault.R
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract.Companion.STATE_ERROR
@@ -39,6 +40,11 @@ class BillingManager(
 ) : BillingManagerContract {
 
     private val appContext = context.applicationContext
+
+    private val verifier = PurchaseVerifier(BuildConfig.PLAY_LICENSE_KEY)
+
+    private fun isAuthentic(purchase: Purchase): Boolean =
+        verifier.isAuthentic(purchase.originalJson, purchase.signature)
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -246,12 +252,12 @@ class BillingManager(
         // Reintenta el acknowledge de compras que quedaron a medias en sesiones
         // anteriores. Play reembolsa automáticamente a las 72 h toda compra que nunca
         // se confirma, así que este barrido en cada arranque es la última red de seguridad.
-        BillingRules.needingAcknowledgement(result.second, appContext.packageName).forEach { acknowledgeWithRetry(it) }
+        BillingRules.needingAcknowledgement(result.second, appContext.packageName, ::isAuthentic).forEach { acknowledgeWithRetry(it) }
 
         // Aquí está la revocación: si Play ya no devuelve la suscripción (cancelada,
         // caducada, reembolsada) el flag local baja a false. Y si la devuelve tras
         // reinstalar o cambiar de móvil, se restaura sola.
-        val hasPremium = BillingRules.hasPremium(result.second, appContext.packageName)
+        val hasPremium = BillingRules.hasPremium(result.second, appContext.packageName, ::isAuthentic)
         preferencesRepository.setIsPremium(hasPremium)
         _stateCode.value = if (hasPremium) STATE_PURCHASED else STATE_IDLE
     }
@@ -300,7 +306,7 @@ class BillingManager(
             Purchase.PurchaseState.PURCHASED -> {
                 // Mismo filtro que la revalidación: una compra de otro paquete o de un
                 // producto que no es premium no se confirma ni da premium.
-                if (BillingRules.activePurchases(listOf(purchase), appContext.packageName).isEmpty()) {
+                if (BillingRules.activePurchases(listOf(purchase), appContext.packageName, ::isAuthentic).isEmpty()) {
                     return
                 }
                 if (purchase.isAcknowledged) {
