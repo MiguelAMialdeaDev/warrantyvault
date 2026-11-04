@@ -23,3 +23,11 @@ build/
 # Volcados de la JVM al caerse Gradle.
 hs_err_pid*.log
 replay_pid*.log
+
+# Documentación interna que no se publica.
+_private/
+# Material de firma en cualquier formato (el keystore va fuera del repo).
+*.p12
+*.pem
+keystore.properties
+encrypted_private_key*
