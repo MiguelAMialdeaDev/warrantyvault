@@ -71,7 +71,8 @@ val repositoryModule = module {
     single<PhotoFileCleaner> {
         PhotoFileCleanerImpl(File(androidContext().filesDir, OrphanPhotoSweeper.PHOTOS_DIR_NAME))
     }
-    // Cuando esté `app/google-services.json`, cambiar a FirebaseAnalyticsTracker.
+    // NO cambiar a FirebaseAnalyticsTracker sin leer antes su KDoc: hay que actualizar
+    // la política de privacidad y la ficha de Play primero.
     single<AnalyticsTracker> { NoOpAnalyticsTracker() }
 }
 

@@ -5,7 +5,18 @@ import android.os.Bundle
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsTracker
 
 /**
- * Implementación real Firebase. Activar cuando esté `app/google-services.json`:
+ * Implementación real Firebase. Activar cuando esté `app/google-services.json`.
+ *
+ * ANTES de activarla, sin excepción:
+ *   - Actualizar la política de privacidad (es y en, aquí y en el repo de GitHub Pages):
+ *     hoy promete que la app no recoge datos, y Analytics y Crashlytics sí los recogen.
+ *   - Actualizar la sección de Seguridad de los datos de Play Console.
+ *   - Pedir consentimiento antes de enviar nada (opt-in) y no mandar nunca datos de las
+ *     garantías (nombre, tienda, notas): solo eventos y números.
+ *   - Volver a declarar los plugins de Firebase en el build.gradle.kts raíz (se quitaron
+ *     por no usarse) y restringir la clave de Firebase al paquete y a las huellas SHA-1.
+ *
+ * Pasos técnicos:
  *
  *   1. Añadir a `app/build.gradle.kts`:
  *      ```
