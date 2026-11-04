@@ -23,6 +23,7 @@ import com.miguelcode.warrantyvault.domain.notification.NotificationScheduler
 import com.miguelcode.warrantyvault.domain.storage.PhotoFileCleaner
 import com.miguelcode.warrantyvault.notifications.DeliveredAlertsStore
 import com.miguelcode.warrantyvault.notifications.NotificationSchedulerImpl
+import com.miguelcode.warrantyvault.storage.OrphanPhotoSweeper
 import com.miguelcode.warrantyvault.storage.PhotoFileCleanerImpl
 import com.miguelcode.warrantyvault.feature.addedit.AddEditViewModel
 import com.miguelcode.warrantyvault.feature.detail.DetailViewModel
@@ -33,6 +34,7 @@ import com.miguelcode.warrantyvault.feature.settings.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
+import java.io.File
 
 val databaseModule = module {
     single {
@@ -55,7 +57,9 @@ val repositoryModule = module {
     single<BillingManagerContract> { BillingManager(androidContext(), get()) }
     single { DeliveredAlertsStore(androidContext()) }
     single<NotificationScheduler> { NotificationSchedulerImpl(androidContext(), get()) }
-    single<PhotoFileCleaner> { PhotoFileCleanerImpl() }
+    single<PhotoFileCleaner> {
+        PhotoFileCleanerImpl(File(androidContext().filesDir, OrphanPhotoSweeper.PHOTOS_DIR_NAME))
+    }
     // Cuando esté `app/google-services.json`, cambiar a FirebaseAnalyticsTracker.
     single<AnalyticsTracker> { NoOpAnalyticsTracker() }
 }
