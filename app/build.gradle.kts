@@ -120,15 +120,18 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 }
 
-// Una versión de publicación sin la clave de licencias rechazaría todas las compras y le
-// quitaría el premium a quien ha pagado: mejor que el build falle con un mensaje claro.
+// A release build without the Play license key would reject every purchase and take premium
+// away from paying users, so packaging a release fails fast with a clear message instead.
+// Only tasks that package, sign or publish a release need the secrets: unit tests, lint and
+// debug builds work from a clean clone.
+val releasePackagingTask = Regex("^(assemble|bundle|package|sign|publish)\\w*Release\\w*$")
 gradle.taskGraph.whenReady {
-    val buildsRelease = allTasks.any { it.project == project && it.name.contains("Release") }
+    val buildsRelease = allTasks.any { it.project == project && releasePackagingTask.matches(it.name) }
     if (!buildsRelease) return@whenReady
     if (playLicenseKey.isEmpty()) {
         throw GradleException(
-            "Falta WARRANTYVAULT_PLAY_LICENSE_KEY en ~/.gradle/gradle.properties " +
-                "(Play Console > Monetizar > Configuración de monetización > Licencias)."
+            "Missing WARRANTYVAULT_PLAY_LICENSE_KEY in ~/.gradle/gradle.properties " +
+                "(Play Console > Monetize > Monetization setup > Licensing)."
         )
     }
     val missingSigning = listOf(
@@ -138,8 +141,8 @@ gradle.taskGraph.whenReady {
         "WARRANTYVAULT_KEY_PASSWORD"
     ).filterNot { it in signingProps }
     if (missingSigning.isNotEmpty()) {
-        throw GradleException("Faltan en ~/.gradle/gradle.properties: " + missingSigning.joinToString())
+        throw GradleException("Missing in ~/.gradle/gradle.properties: " + missingSigning.joinToString())
     }
     val keystore = file(signingProps.getValue("WARRANTYVAULT_KEYSTORE_PATH"))
-    if (!keystore.isFile) throw GradleException("No existe el keystore de subida: $keystore")
+    if (!keystore.isFile) throw GradleException("Upload keystore not found: $keystore")
 }
