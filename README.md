@@ -1,5 +1,7 @@
 # WarrantyVault
 
+[![Android CI](https://github.com/MiguelAMialdeaDev/warrantyvault/actions/workflows/android.yml/badge.svg)](https://github.com/MiguelAMialdeaDev/warrantyvault/actions/workflows/android.yml)
+
 Android app to keep every product warranty and receipt in one place and get reminded before it expires.
 
 <p>
