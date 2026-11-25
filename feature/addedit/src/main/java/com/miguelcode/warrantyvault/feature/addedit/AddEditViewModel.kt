@@ -15,6 +15,7 @@ import com.miguelcode.warrantyvault.domain.usecase.CheckPremiumLimitUseCase
 import com.miguelcode.warrantyvault.domain.usecase.GetWarrantyByIdUseCase
 import com.miguelcode.warrantyvault.domain.usecase.PremiumLimitReachedException
 import com.miguelcode.warrantyvault.domain.usecase.UpdateWarrantyUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +36,9 @@ class AddEditViewModel(
      * Opcional a propósito: si el entorno no puede aportarlo (tests), el formulario sigue
      * funcionando y solo se pierde la restauración tras muerte del proceso.
      */
-    private val savedStateHandle: SavedStateHandle? = null
+    private val savedStateHandle: SavedStateHandle? = null,
+    /** Where the receipt photo is copied. Injected so tests can run the copy deterministically. */
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddEditState())
@@ -166,7 +169,7 @@ class AddEditViewModel(
         if (_state.value.isPhotoLoading) return
         updateState { it.copy(isPhotoLoading = true) }
         viewModelScope.launch {
-            val path = withContext(Dispatchers.IO) { copyToInternal(uri) }
+            val path = withContext(ioDispatcher) { copyToInternal(uri) }
             updateState {
                 // Una copia fallida deja la foto anterior, no la borra.
                 it.copy(isPhotoLoading = false, receiptPhotoPath = path ?: it.receiptPhotoPath)

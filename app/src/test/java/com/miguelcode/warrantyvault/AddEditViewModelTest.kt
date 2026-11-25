@@ -16,6 +16,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -43,7 +44,10 @@ class AddEditViewModelTest {
             getWarrantyByIdUseCase = getWarrantyByIdUseCase,
             addWarrantyUseCase = addWarrantyUseCase,
             updateWarrantyUseCase = updateWarrantyUseCase,
-            checkPremiumLimitUseCase = checkPremiumLimitUseCase
+            checkPremiumLimitUseCase = checkPremiumLimitUseCase,
+            // Same scheduler as Main: the photo copy only runs when a test advances it, so
+            // no coroutine can outlive the test and resume after resetMain().
+            ioDispatcher = StandardTestDispatcher(mainDispatcherRule.testDispatcher.scheduler)
         )
     }
 
@@ -198,19 +202,22 @@ class AddEditViewModelTest {
     fun `save is ignored while the receipt photo is still being copied`() = runTest {
         coEvery { checkPremiumLimitUseCase() } returns true
         coEvery { addWarrantyUseCase(any()) } returns Result.Success(1L)
-        val copy = CompletableDeferred<String?>()
         val vm = createViewModel()
         vm.fillValidForm()
 
-        // La copia queda colgada en IO hasta que el test la completa.
-        vm.onPhotoPicked(mockk(relaxed = true)) { kotlinx.coroutines.runBlocking { copy.await() } }
+        // The copy is queued on the test IO dispatcher and stays pending until we advance it.
+        vm.onPhotoPicked(mockk(relaxed = true)) { "/receipts/ticket.jpg" }
         assertTrue(vm.state.value.isPhotoLoading)
 
         vm.onSave()
 
         coVerify(exactly = 0) { addWarrantyUseCase(any()) }
         assertFalse(vm.state.value.isSaving)
-        copy.complete(null)
+
+        // Let the copy finish inside the test, so nothing resumes after it ends.
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        assertFalse(vm.state.value.isPhotoLoading)
+        assertEquals("/receipts/ticket.jpg", vm.state.value.receiptPhotoPath)
     }
 
     private fun warrantyEndingOn(purchase: LocalDate, end: LocalDate) = Warranty(
