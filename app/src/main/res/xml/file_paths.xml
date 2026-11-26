@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Lo único que la app comparte hacia fuera: las fotos de los tickets, y solo cuando el
-  usuario pulsa Compartir. Cada uri lleva un permiso de lectura temporal para la app
-  elegida; ni la base de datos ni las preferencias quedan expuestas.
+  Lo único que sale de la app por uri: las fotos de los tickets cuando el usuario pulsa
+  Compartir, y el fichero temporal donde la cámara del sistema escribe la foto nueva.
+  Cada uri lleva un permiso temporal solo para la app elegida; ni la base de datos ni
+  las preferencias quedan expuestas.
 -->
 <paths>
     <files-path name="ticket_photos" path="ticket_photos/" />
+    <!-- Destino temporal de la cámara del sistema al hacer la foto del ticket. -->
+    <cache-path name="camera" path="camera/" />
 </paths>

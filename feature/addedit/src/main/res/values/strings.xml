@@ -25,6 +25,11 @@
     <string name="addedit_photo_ticket">Foto del ticket</string>
     <string name="addedit_photo_add">Añadir foto</string>
     <string name="addedit_photo_add_label">Añadir foto del ticket</string>
+    <string name="addedit_photo_source_title">Foto del ticket</string>
+    <string name="addedit_photo_source_camera">Hacer una foto</string>
+    <string name="addedit_photo_source_gallery">Elegir de la galería</string>
+    <string name="addedit_photo_source_cancel">Cancelar</string>
+    <string name="addedit_photo_camera_unavailable">No hay ninguna app de cámara disponible. Elige la foto de la galería.</string>
 
     <string name="addedit_error_max_months">Máximo 600 meses</string>
     <string name="addedit_error_max_years">Máximo 50 años</string>

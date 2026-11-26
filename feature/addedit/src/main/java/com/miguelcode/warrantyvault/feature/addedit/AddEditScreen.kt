@@ -41,7 +41,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import android.content.ActivityNotFoundException
+import java.io.File
+import kotlinx.coroutines.launch
+import com.miguelcode.warrantyvault.feature.addedit.components.PhotoSourceDialog
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -99,6 +107,58 @@ fun AddEditScreen(
         uri?.let { viewModel.onPhotoPicked(it) { source -> PhotoStorage.copyToInternal(appContext, source) } }
     }
 
+    // Foto con la cámara del sistema. El ticket suele estar en la mano al dar de alta
+    // la garantía, y antes había que salir, hacer la foto y buscarla en la galería.
+    // Va a un fichero temporal de la caché que después se copia como cualquier otra
+    // foto elegida. La ruta se guarda en rememberSaveable porque la cámara puede hacer
+    // que el sistema mate nuestro proceso mientras está abierta.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var pendingCapturePath by rememberSaveable { mutableStateOf<String?>(null) }
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { saved ->
+        val capture = pendingCapturePath?.let(::File)
+        pendingCapturePath = null
+        if (capture == null) return@rememberLauncherForActivityResult
+        if (!saved) {
+            capture.delete()
+            return@rememberLauncherForActivityResult
+        }
+        viewModel.onPhotoPicked(PhotoStorage.captureUri(appContext, capture)) { source ->
+            PhotoStorage.copyToInternal(appContext, source).also { capture.delete() }
+        }
+    }
+    var showPhotoSourceDialog by rememberSaveable { mutableStateOf(false) }
+    val cameraUnavailableMessage = stringResource(R.string.addedit_photo_camera_unavailable)
+    val launchCamera: () -> Unit = {
+        val capture = PhotoStorage.newCaptureFile(appContext)
+        pendingCapturePath = capture.absolutePath
+        try {
+            takePictureLauncher.launch(PhotoStorage.captureUri(appContext, capture))
+        } catch (_: ActivityNotFoundException) {
+            // Móvil sin app de cámara (o deshabilitada): queda la galería.
+            pendingCapturePath = null
+            capture.delete()
+            scope.launch { snackbarHostState.showSnackbar(cameraUnavailableMessage) }
+        }
+    }
+    if (showPhotoSourceDialog) {
+        PhotoSourceDialog(
+            onCamera = {
+                showPhotoSourceDialog = false
+                launchCamera()
+            },
+            onGallery = {
+                showPhotoSourceDialog = false
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+            },
+            onDismiss = { showPhotoSourceDialog = false }
+        )
+    }
+
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onNavigateBack()
     }
@@ -110,7 +170,6 @@ fun AddEditScreen(
     // Sin esto, un guardado fallido era invisible: el ViewModel dejaba el error en el
     // estado, la pantalla no lo leía, y el usuario veía que el botón simplemente no hacía
     // nada. `formError` es localizable (límite premium) y `error` viene del use case.
-    val snackbarHostState = remember { SnackbarHostState() }
 
     // El string se resuelve en composición (localized() es @Composable) y el efecto solo
     // lo muestra, que es lo que permite reutilizar el mapeo ya existente arriba.
@@ -179,11 +238,7 @@ fun AddEditScreen(
             PhotoPickerBox(
                 photoPath = state.receiptPhotoPath,
                 isLoading = state.isPhotoLoading,
-                onClick = {
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                }
+                onClick = { showPhotoSourceDialog = true }
             )
 
             // Product name

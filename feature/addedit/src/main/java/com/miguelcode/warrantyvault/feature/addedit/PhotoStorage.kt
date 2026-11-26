@@ -2,6 +2,7 @@ package com.miguelcode.warrantyvault.feature.addedit
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -52,6 +53,23 @@ object PhotoStorage {
             null
         }
     }
+
+    /**
+     * Fichero temporal donde la cámara del sistema deja la foto. Vive en la caché y se
+     * borra tras copiarlo a ticket_photos; si la app muere antes, Android limpia la
+     * caché solo cuando le hace falta espacio, y cada captura nueva pisa la anterior.
+     */
+    fun newCaptureFile(context: Context): File {
+        val dir = File(context.cacheDir, CAPTURE_DIR).apply { mkdirs() }
+        return File(dir, CAPTURE_FILE).apply { delete() }
+    }
+
+    /** Uri del FileProvider para el fichero de captura (ver res/xml/file_paths.xml de :app). */
+    fun captureUri(context: Context, file: File): Uri =
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+
+    private const val CAPTURE_DIR = "camera"
+    private const val CAPTURE_FILE = "capture.jpg"
 
     /** Copia como `copyTo`, pero lanza en cuanto se pasa del tope. */
     fun copyWithLimit(source: InputStream, output: OutputStream, maxBytes: Long) {

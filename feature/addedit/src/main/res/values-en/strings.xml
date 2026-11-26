@@ -25,6 +25,11 @@
     <string name="addedit_photo_ticket">Receipt photo</string>
     <string name="addedit_photo_add">Add photo</string>
     <string name="addedit_photo_add_label">Add receipt photo</string>
+    <string name="addedit_photo_source_title">Receipt photo</string>
+    <string name="addedit_photo_source_camera">Take a photo</string>
+    <string name="addedit_photo_source_gallery">Choose from gallery</string>
+    <string name="addedit_photo_source_cancel">Cancel</string>
+    <string name="addedit_photo_camera_unavailable">No camera app available. Choose the photo from your gallery.</string>
 
     <string name="addedit_error_max_months">Maximum 600 months</string>
     <string name="addedit_error_max_years">Maximum 50 years</string>
