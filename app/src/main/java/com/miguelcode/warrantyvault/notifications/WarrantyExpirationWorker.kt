@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.miguelcode.warrantyvault.MainActivity
 import com.miguelcode.warrantyvault.R
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsEvents
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsTracker
@@ -101,7 +100,10 @@ class WarrantyExpirationWorker(
             }
         }
 
-        val intent = Intent(context, MainActivity::class.java).apply {
+        // Tocar el aviso lleva a la garantía que vence, no a la lista: es lo que el
+        // usuario quiere ver en ese momento. Va por el alias no exportado para que
+        // MainActivity pueda fiarse del id.
+        val intent = NotificationEntry.openWarrantyIntent(context, warrantyId).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 

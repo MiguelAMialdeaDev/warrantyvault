@@ -20,6 +20,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -28,6 +29,8 @@ import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import com.miguelcode.warrantyvault.domain.usecase.SyncExpirationAlertsUseCase
 import com.miguelcode.warrantyvault.navigation.AppNavGraph
+import com.miguelcode.warrantyvault.navigation.Screen
+import com.miguelcode.warrantyvault.notifications.NotificationEntry
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -59,6 +62,12 @@ class MainActivity : ComponentActivity() {
         // del intent de arranque sus extras internos (deepLinkIds, deepLinkArgs) y otra app
         // podía usarlos para abrir directamente cualquier pantalla, por ejemplo la de
         // editar con un id elegido. Se vacían antes de montar el grafo.
+        // La única excepción es el id que trae el aviso de caducidad, y solo si llega por
+        // el alias no exportado (ver NotificationEntry). Al recrear la actividad no se
+        // vuelve a usar: NavController ya restaura su propia pila.
+        if (savedInstanceState == null) {
+            pendingWarrantyId.value = NotificationEntry.warrantyIdFrom(intent)
+        }
         intent = sanitized(intent)
         super.onCreate(savedInstanceState)
         // La miniatura de Recientes guardaba la última pantalla: el detalle con precio,
@@ -119,14 +128,29 @@ class MainActivity : ComponentActivity() {
                 } else {
                     val navController = rememberNavController()
                     AppNavGraph(navController = navController, onboardingDone = onboardingDone!!)
+                    val warrantyToOpen by pendingWarrantyId
+                    LaunchedEffect(warrantyToOpen, onboardingDone) {
+                        val id = warrantyToOpen ?: return@LaunchedEffect
+                        // Sin onboarding hecho no hay garantías que abrir: se descarta.
+                        if (onboardingDone == true) {
+                            navController.navigate(Screen.Detail.createRoute(id)) {
+                                launchSingleTop = true
+                            }
+                        }
+                        pendingWarrantyId.value = null
+                    }
                 }
             }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
+        NotificationEntry.warrantyIdFrom(intent)?.let { pendingWarrantyId.value = it }
         super.onNewIntent(sanitized(intent))
     }
+
+    /** Garantía que el aviso pidió abrir y que el grafo aún no ha mostrado. */
+    private val pendingWarrantyId = mutableStateOf<Long?>(null)
 
     /** Copia del intent sin extras ni datos, conservando acción, categorías y flags. */
     private fun sanitized(source: Intent): Intent = Intent(source).apply {

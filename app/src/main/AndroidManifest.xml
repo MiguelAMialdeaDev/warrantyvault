@@ -38,6 +38,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          Entrada solo para el aviso de caducidad. Al no estar exportada, ninguna otra app
+          puede lanzarla, así que MainActivity solo acepta el id de garantía cuando el
+          intent llega por aquí y sigue vaciando cualquier extra que entre por el lanzador.
+        -->
+        <activity-alias
+            android:name=".notifications.OpenWarrantyFromNotification"
+            android:exported="false"
+            android:targetActivity=".MainActivity" />
     </application>
 
 </manifest>
