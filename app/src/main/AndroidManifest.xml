@@ -48,6 +48,17 @@
             android:name=".notifications.OpenWarrantyFromNotification"
             android:exported="false"
             android:targetActivity=".MainActivity" />
+
+        <!-- Comparte el ticket con permiso temporal por uri. No exportado: nadie lo lee sin ese permiso. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

@@ -4,6 +4,10 @@
     <string name="detail_action_edit">Edit</string>
     <string name="detail_action_delete">Delete</string>
     <string name="detail_photo_ticket">Receipt photo</string>
+    <string name="detail_photo_open">view the receipt full screen</string>
+    <string name="detail_photo_close">Close</string>
+    <string name="detail_photo_share">Share receipt</string>
+    <string name="detail_photo_share_subject">Receipt for %1$s</string>
     <string name="detail_not_found">This warranty no longer exists.</string>
     <string name="detail_error_generic">Something went wrong. Please try again.</string>
 

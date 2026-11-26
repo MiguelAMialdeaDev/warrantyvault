@@ -3,6 +3,12 @@ package com.miguelcode.warrantyvault.feature.detail.components
 import androidx.compose.runtime.remember
 import java.io.File
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.outlined.ZoomIn
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,23 +35,43 @@ import com.miguelcode.warrantyvault.ui.theme.*
 fun WarrantyHero(
     category: WarrantyCategory,
     photoPath: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPhotoClick: (File) -> Unit = {}
 ) {
+    // Se pasa un File y no la ruta como texto: con un String, Coil elige cómo cargarlo
+    // por el esquema, y una ruta manipulada con http:// o content:// acabaría en una
+    // petición de red o leyendo de otra app. Tras restaurar una copia en la nube las
+    // fotos no viajan: si el fichero falta, se enseña el icono de la categoría.
+    val photoFile = remember(photoPath) { photoPath?.let(::File)?.takeIf { it.isFile } }
+    val openLabel = stringResource(R.string.detail_photo_open)
     Box(
-        modifier = modifier.fillMaxWidth().height(220.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(220.dp)
+            .then(
+                if (photoFile != null) {
+                    Modifier.clickable(onClickLabel = openLabel, role = Role.Image) { onPhotoClick(photoFile) }
+                } else Modifier
+            ),
         contentAlignment = Alignment.Center
     ) {
-        // Se pasa un File y no la ruta como texto: con un String, Coil elige cómo cargarlo
-        // por el esquema, y una ruta manipulada con http:// o content:// acabaría en una
-        // petición de red o leyendo de otra app. Tras restaurar una copia en la nube las
-        // fotos no viajan: si el fichero falta, se enseña el icono de la categoría.
-        val photoFile = remember(photoPath) { photoPath?.let(::File)?.takeIf { it.isFile } }
         if (photoFile != null) {
             AsyncImage(
                 model = photoFile,
                 contentDescription = stringResource(R.string.detail_photo_ticket),
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop
+            )
+            // Pista visible de que la foto se puede abrir: recortada no se lee el total.
+            Icon(
+                imageVector = Icons.Outlined.ZoomIn,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(12.dp)
+                    .background(Color.Black.copy(alpha = 0.55f), CircleShape)
+                    .padding(8.dp)
             )
         } else {
             val (bg, iconColor, icon) = when (category) {

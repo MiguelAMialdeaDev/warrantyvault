@@ -40,6 +40,7 @@ import com.miguelcode.warrantyvault.ui.common.ConfirmDeleteDialog
 import com.miguelcode.warrantyvault.feature.detail.components.InfoCard
 import com.miguelcode.warrantyvault.feature.detail.components.StatusSection
 import com.miguelcode.warrantyvault.feature.detail.components.WarrantyHero
+import com.miguelcode.warrantyvault.feature.detail.components.ReceiptPhotoViewer
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -53,6 +54,7 @@ fun DetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var viewerPhoto by remember { mutableStateOf<java.io.File?>(null) }
 
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onNavigateBack()
@@ -66,6 +68,14 @@ fun DetailScreen(
                 viewModel.onDelete()
             },
             onDismiss = { showDeleteDialog = false }
+        )
+    }
+
+    viewerPhoto?.let { photo ->
+        ReceiptPhotoViewer(
+            photo = photo,
+            productName = state.warranty?.productName.orEmpty(),
+            onDismiss = { viewerPhoto = null }
         )
     }
 
@@ -137,7 +147,8 @@ fun DetailScreen(
                 ) {
                     WarrantyHero(
                         category = warranty.category,
-                        photoPath = warranty.receiptPhotoPath
+                        photoPath = warranty.receiptPhotoPath,
+                        onPhotoClick = { viewerPhoto = it }
                     )
                     StatusSection(
                         warranty = warranty,

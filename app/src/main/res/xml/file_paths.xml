@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Lo único que la app comparte hacia fuera: las fotos de los tickets, y solo cuando el
+  usuario pulsa Compartir. Cada uri lleva un permiso de lectura temporal para la app
+  elegida; ni la base de datos ni las preferencias quedan expuestas.
+-->
+<paths>
+    <files-path name="ticket_photos" path="ticket_photos/" />
+</paths>
