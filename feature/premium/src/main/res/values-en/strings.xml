@@ -30,6 +30,8 @@
     <string name="premium_cta_loading">Loading plans…</string>
     <string name="premium_cta_unavailable">Plans not available right now</string>
     <string name="premium_cta_purchased">Premium active</string>
-    <string name="premium_cancel_anytime">Cancel anytime</string>
+    <string name="premium_renewal_disclosure_monthly">You will be charged %1$s per month to your Google Play account. The subscription renews automatically every month until you cancel it in Google Play, under Subscriptions. Cancel at least 24 hours before renewal to avoid being charged for the next period.</string>
+    <string name="premium_renewal_disclosure_yearly">You will be charged %1$s per year to your Google Play account. The subscription renews automatically every year until you cancel it in Google Play, under Subscriptions. Cancel at least 24 hours before renewal to avoid being charged for the next period.</string>
+    <string name="premium_renewal_disclosure_generic">Payment is charged to your Google Play account. The subscription renews automatically until you cancel it in Google Play, under Subscriptions.</string>
     <string name="premium_manage_subscription">Manage subscription</string>
 </resources>

@@ -21,4 +21,7 @@
     <string name="expired_months">Expired %1$d months ago</string>
     <string name="expired_year_one">Expired 1 year ago</string>
     <string name="expired_years">Expired %1$d years ago</string>
+
+    <string name="privacy_policy_label">Privacy policy</string>
+    <string name="privacy_policy_url" translatable="false">https://miguelamialdeadev.github.io/warrantyvault-legal/privacy-policy.en</string>
 </resources>

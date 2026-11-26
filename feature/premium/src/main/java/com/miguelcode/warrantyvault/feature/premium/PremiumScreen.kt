@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.feature.premium.R
+import com.miguelcode.warrantyvault.ui.R as UiR
+import com.miguelcode.warrantyvault.ui.common.AppLinks
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -191,24 +193,37 @@ fun PremiumScreen(
             }
 
             Spacer(Modifier.height(8.dp))
+            val uriHandler = LocalUriHandler.current
             if (billingState == BillingManagerContract.STATE_PURCHASED) {
                 // Quien ya paga necesita una salida clara para cambiar de plan o cancelar.
                 // Play exige que sea fácil, y sin enlace había que buscarlo en Play Store.
-                val uriHandler = LocalUriHandler.current
                 val packageName = LocalContext.current.packageName
-                TextButton(onClick = {
-                    uriHandler.openUri(
-                        "https://play.google.com/store/account/subscriptions?package=$packageName"
-                    )
-                }) {
+                TextButton(onClick = { uriHandler.openUri(AppLinks.manageSubscriptions(packageName)) }) {
                     Text(stringResource(R.string.premium_manage_subscription))
                 }
             } else {
+                // La política de suscripciones de Play pide decir, junto al botón de compra,
+                // cuánto se cobra, cada cuánto, que se renueva sola y cómo cancelar. Con
+                // solo "Cancela cuando quieras" la ficha se arriesgaba a un rechazo.
+                val selectedPrice = prices[
+                    if (selectedPlan == PLAN_MONTHLY) BillingManagerContract.PRODUCT_MONTHLY
+                    else BillingManagerContract.PRODUCT_YEARLY
+                ]?.formatted
+                val disclosure = when {
+                    selectedPrice == null -> stringResource(R.string.premium_renewal_disclosure_generic)
+                    selectedPlan == PLAN_MONTHLY -> stringResource(R.string.premium_renewal_disclosure_monthly, selectedPrice)
+                    else -> stringResource(R.string.premium_renewal_disclosure_yearly, selectedPrice)
+                }
                 Text(
-                    stringResource(R.string.premium_cancel_anytime),
+                    disclosure,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
+            }
+            val privacyUrl = stringResource(UiR.string.privacy_policy_url)
+            TextButton(onClick = { uriHandler.openUri(privacyUrl) }) {
+                Text(stringResource(UiR.string.privacy_policy_label))
             }
 
             Spacer(Modifier.height(32.dp))

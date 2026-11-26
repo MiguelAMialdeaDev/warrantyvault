@@ -40,6 +40,12 @@
     <string name="premium_cta_loading">Cargando planes…</string>
     <string name="premium_cta_unavailable">Planes no disponibles ahora mismo</string>
     <string name="premium_cta_purchased">Premium activado</string>
-    <string name="premium_cancel_anytime">Cancela cuando quieras</string>
+    <!--
+      Aviso de renovación que pide la política de suscripciones de Play: precio, periodo,
+      renovación automática y cómo cancelar, al lado del botón de compra.
+    -->
+    <string name="premium_renewal_disclosure_monthly">Se cobran %1$s al mes en tu cuenta de Google Play. La suscripción se renueva sola cada mes hasta que la canceles en Google Play, en Suscripciones. Cancela al menos 24 horas antes de la renovación para que no se cobre el siguiente periodo.</string>
+    <string name="premium_renewal_disclosure_yearly">Se cobran %1$s al año en tu cuenta de Google Play. La suscripción se renueva sola cada año hasta que la canceles en Google Play, en Suscripciones. Cancela al menos 24 horas antes de la renovación para que no se cobre el siguiente periodo.</string>
+    <string name="premium_renewal_disclosure_generic">El cobro se hace en tu cuenta de Google Play. La suscripción se renueva sola hasta que la canceles en Google Play, en Suscripciones.</string>
     <string name="premium_manage_subscription">Gestionar suscripción</string>
 </resources>
