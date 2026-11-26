@@ -4,7 +4,7 @@
     <string name="settings_back">Volver</string>
     <string name="settings_plan_section">Tu plan</string>
     <string name="settings_plan_premium">Premium</string>
-    <string name="settings_plan_free">Free</string>
+    <string name="settings_plan_free">Gratis</string>
     <string name="settings_plan_limit">Máximo 3 garantías</string>
     <string name="settings_plan_upgrade">Actualizar</string>
     <string name="settings_appearance">Apariencia</string>
@@ -15,7 +15,15 @@
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notifications_reminders">Recordatorios de vencimiento</string>
     <string name="settings_app">App</string>
-    <string name="settings_version">Versión 1.0.0</string>
+    <string name="settings_version">Versión %1$s</string>
+    <string name="settings_restore_purchases">Restaurar compras</string>
+    <string name="settings_restoring">Buscando tus compras…</string>
+    <string name="settings_restore_done">Premium restaurado</string>
+    <string name="settings_restore_nothing">No hay ninguna suscripción activa en esta cuenta de Google</string>
+    <string name="settings_manage_subscription">Gestionar suscripción</string>
+    <string name="settings_contact">Contactar</string>
+    <string name="settings_contact_subject">WarrantyVault</string>
+    <string name="settings_contact_email" translatable="false">miguelmialdeamonzo@gmail.com</string>
     <string name="settings_permission_denied">Permiso denegado. Actívalo desde Ajustes para recibir avisos.</string>
     <string name="settings_open_settings">Abrir Ajustes</string>
 </resources>

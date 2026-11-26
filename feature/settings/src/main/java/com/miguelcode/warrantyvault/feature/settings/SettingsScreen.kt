@@ -1,6 +1,7 @@
 package com.miguelcode.warrantyvault.feature.settings
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -8,6 +9,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -22,8 +25,12 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Policy
+import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,12 +47,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -56,6 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import com.miguelcode.warrantyvault.ui.R as UiR
+import com.miguelcode.warrantyvault.ui.common.AppLinks
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,9 +81,26 @@ fun SettingsScreen(
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
 
+    val restoring by viewModel.restoring.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val versionName = remember(context) {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
+            .getOrNull()
+            .orEmpty()
+    }
+
+    val restoredMessage = stringResource(R.string.settings_restore_done)
+    val nothingFoundMessage = stringResource(R.string.settings_restore_nothing)
+    LaunchedEffect(viewModel) {
+        viewModel.restoreResults.collect { result ->
+            snackbarHostState.showSnackbar(
+                if (result == SettingsViewModel.RestoreResult.Restored) restoredMessage else nothingFoundMessage
+            )
+        }
+    }
 
     // Pide el permiso del sistema cuando el usuario intenta activar el toggle.
     // Si lo concede → preferencia local a true. Si lo deniega → snackbar con CTA a Ajustes.
@@ -274,14 +303,89 @@ fun SettingsScreen(
             // App section
             Text(stringResource(R.string.settings_app), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             Spacer(Modifier.height(8.dp))
+            val uriHandler = LocalUriHandler.current
+            val privacyUrl = stringResource(UiR.string.privacy_policy_url)
+            val contactEmail = stringResource(R.string.settings_contact_email)
+            val contactSubject = stringResource(R.string.settings_contact_subject)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.settings_version), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
+                Column {
+                    if (isPremium) {
+                        SettingsLinkRow(
+                            icon = Icons.Outlined.CreditCard,
+                            label = stringResource(R.string.settings_manage_subscription),
+                            onClick = { uriHandler.openUri(AppLinks.manageSubscriptions(context.packageName)) }
+                        )
+                    } else {
+                        SettingsLinkRow(
+                            icon = Icons.Outlined.Restore,
+                            label = stringResource(
+                                if (restoring) R.string.settings_restoring else R.string.settings_restore_purchases
+                            ),
+                            enabled = !restoring,
+                            onClick = viewModel::restorePurchases
+                        )
+                    }
+                    SettingsLinkRow(
+                        icon = Icons.Outlined.Policy,
+                        label = stringResource(UiR.string.privacy_policy_label),
+                        onClick = { uriHandler.openUri(privacyUrl) }
+                    )
+                    SettingsLinkRow(
+                        icon = Icons.Outlined.Email,
+                        label = stringResource(R.string.settings_contact),
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:")
+                                putExtra(Intent.EXTRA_EMAIL, arrayOf(contactEmail))
+                                putExtra(Intent.EXTRA_SUBJECT, "$contactSubject $versionName")
+                            }
+                            // Sin app de correo instalada startActivity lanzaría: mejor
+                            // enseñar la dirección para que el usuario la copie.
+                            try {
+                                context.startActivity(intent)
+                            } catch (_: ActivityNotFoundException) {
+                                scope.launch { snackbarHostState.showSnackbar(contactEmail) }
+                            }
+                        }
+                    )
+                    // La versión sale del paquete instalado: el texto fijo "1.0.0" seguía
+                    // ahí en la 1.0.2 y despistaba al pedir soporte.
+                    Text(
+                        stringResource(R.string.settings_version, versionName),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SettingsLinkRow(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.width(12.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

@@ -15,7 +15,14 @@
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_reminders">Expiration reminders</string>
     <string name="settings_app">App</string>
-    <string name="settings_version">Version 1.0.0</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_restore_purchases">Restore purchases</string>
+    <string name="settings_restoring">Looking for your purchases…</string>
+    <string name="settings_restore_done">Premium restored</string>
+    <string name="settings_restore_nothing">No active subscription on this Google account</string>
+    <string name="settings_manage_subscription">Manage subscription</string>
+    <string name="settings_contact">Contact</string>
+    <string name="settings_contact_subject">WarrantyVault</string>
     <string name="settings_permission_denied">Permission denied. Turn it on in Settings to get reminders.</string>
     <string name="settings_open_settings">Open Settings</string>
 </resources>

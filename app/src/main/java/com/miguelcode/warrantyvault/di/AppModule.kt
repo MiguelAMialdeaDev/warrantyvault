@@ -110,7 +110,7 @@ val viewModelModule = module {
     }
     viewModel { OnboardingViewModel(get(), get()) }
     viewModel { PremiumViewModel(get(), get()) }
-    viewModel { SettingsViewModel(get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get()) }
 }
 
 val appModules = listOf(databaseModule, repositoryModule, useCaseModule, viewModelModule)
