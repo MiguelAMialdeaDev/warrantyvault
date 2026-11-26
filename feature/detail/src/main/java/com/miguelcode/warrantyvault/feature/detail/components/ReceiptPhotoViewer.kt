@@ -1,6 +1,7 @@
 package com.miguelcode.warrantyvault.feature.detail.components
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -121,6 +122,9 @@ private fun shareReceipt(context: Context, photo: File, productName: String) {
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "image/*"
         putExtra(Intent.EXTRA_STREAM, uri)
+        // Sin ClipData, el permiso de lectura solo viaja con el extra y el selector del
+        // sistema no puede abrir la uri para la vista previa (Permission Denial en logcat).
+        clipData = ClipData.newRawUri(null, uri)
         putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.detail_photo_share_subject, productName))
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
