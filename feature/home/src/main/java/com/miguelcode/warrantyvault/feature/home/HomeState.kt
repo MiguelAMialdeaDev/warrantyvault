@@ -13,20 +13,26 @@ data class HomeState(
     /** No se pudo leer la base de datos. No es lo mismo que no tener garantías. */
     val loadError: Boolean = false
 ) {
-    val filteredWarranties: List<Warranty>
-        get() {
-            val filtered = when (selectedFilter) {
-                WarrantyFilter.ALL -> warranties
-                WarrantyFilter.ACTIVE -> warranties.filter { it.status == WarrantyStatus.ACTIVE }
-                WarrantyFilter.EXPIRING_SOON -> warranties.filter { it.status == WarrantyStatus.EXPIRING_SOON }
-                WarrantyFilter.EXPIRED -> warranties.filter { it.status == WarrantyStatus.EXPIRED }
-            }
-            return if (searchQuery.isBlank()) filtered
-            else filtered.filter {
-                it.productName.contains(searchQuery, ignoreCase = true) ||
-                        it.store.contains(searchQuery, ignoreCase = true)
-            }
+    /**
+     * Calculada una vez por estado (antes en cada acceso, varias veces por frame) y en
+     * orden de urgencia: primero las que están por vencer, luego las activas por fecha de
+     * fin y al final las caducadas, las más recientes antes. Con el orden de la consulta
+     * (fecha de fin ascendente) la lista empezaba por las caducadas más antiguas.
+     */
+    val filteredWarranties: List<Warranty> by lazy {
+        val filtered = when (selectedFilter) {
+            WarrantyFilter.ALL -> warranties
+            WarrantyFilter.ACTIVE -> warranties.filter { it.status == WarrantyStatus.ACTIVE }
+            WarrantyFilter.EXPIRING_SOON -> warranties.filter { it.status == WarrantyStatus.EXPIRING_SOON }
+            WarrantyFilter.EXPIRED -> warranties.filter { it.status == WarrantyStatus.EXPIRED }
         }
+        val searched = if (searchQuery.isBlank()) filtered
+        else filtered.filter {
+            it.productName.contains(searchQuery, ignoreCase = true) ||
+                    it.store.contains(searchQuery, ignoreCase = true)
+        }
+        searched.sortedWith(byUrgency)
+    }
 
     val activeCount: Int get() = warranties.count { it.status == WarrantyStatus.ACTIVE }
     val expiringCount: Int get() = warranties.count { it.status == WarrantyStatus.EXPIRING_SOON }
@@ -37,6 +43,21 @@ data class HomeState(
 }
 
 const val MAX_FREE_WARRANTIES = 3
+
+private val byUrgency: Comparator<Warranty> = Comparator { a, b ->
+    val rank = urgencyRank(a.status).compareTo(urgencyRank(b.status))
+    when {
+        rank != 0 -> rank
+        a.status == WarrantyStatus.EXPIRED -> b.warrantyEndDate.compareTo(a.warrantyEndDate)
+        else -> a.warrantyEndDate.compareTo(b.warrantyEndDate)
+    }
+}
+
+private fun urgencyRank(status: WarrantyStatus): Int = when (status) {
+    WarrantyStatus.EXPIRING_SOON -> 0
+    WarrantyStatus.ACTIVE -> 1
+    WarrantyStatus.EXPIRED -> 2
+}
 
 enum class WarrantyFilter {
     ALL, ACTIVE, EXPIRING_SOON, EXPIRED

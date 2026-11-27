@@ -114,6 +114,21 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `the list puts what expires soonest first and the oldest expired last`() = runTest {
+        val today = LocalDate.now()
+        val oldExpired = sampleWarranty(id = 1, name = "old", endDate = today.minusYears(2))
+        val recentExpired = sampleWarranty(id = 2, name = "recent", endDate = today.minusDays(3))
+        val active = sampleWarranty(id = 3, name = "active", endDate = today.plusYears(1))
+        val expiring = sampleWarranty(id = 4, name = "expiring", endDate = today.plusDays(10))
+        every { getWarrantiesUseCase() } returns flowOf(listOf(oldExpired, recentExpired, expiring, active))
+        every { preferencesRepository.isPremiumFlow } returns flowOf(false)
+
+        val order = createViewModel().state.value.filteredWarranties.map { it.productName }
+
+        assertEquals(listOf("expiring", "active", "recent", "old"), order)
+    }
+
+    @Test
     fun `filter updates correctly`() = runTest {
         every { getWarrantiesUseCase() } returns flowOf(emptyList())
         every { preferencesRepository.isPremiumFlow } returns flowOf(false)

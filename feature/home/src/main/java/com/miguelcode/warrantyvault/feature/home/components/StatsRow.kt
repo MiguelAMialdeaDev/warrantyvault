@@ -18,7 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,7 +40,10 @@ fun StatsRow(
     activeCount: Int,
     expiringCount: Int,
     expiredCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onActiveClick: () -> Unit = {},
+    onExpiringClick: () -> Unit = {},
+    onExpiredClick: () -> Unit = {}
 ) {
     val isDark = LocalIsDarkTheme.current
 
@@ -51,18 +57,21 @@ fun StatsRow(
             count = activeCount,
             label = stringResource(R.string.home_stat_active),
             color = if (isDark) StatusActiveTextDark else StatusActiveText,
+            onClick = onActiveClick,
             modifier = Modifier.weight(1f)
         )
         StatCard(
             count = expiringCount,
             label = stringResource(R.string.home_stat_expiring),
             color = if (isDark) StatusExpiringTextDark else StatusExpiringText,
+            onClick = onExpiringClick,
             modifier = Modifier.weight(1f)
         )
         StatCard(
             count = expiredCount,
             label = stringResource(R.string.home_stat_expired),
             color = if (isDark) StatusExpiredTextDark else StatusExpiredText,
+            onClick = onExpiredClick,
             modifier = Modifier.weight(1f)
         )
     }
@@ -73,6 +82,7 @@ private fun StatCard(
     count: Int,
     label: String,
     color: Color,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val animatedCount by animateIntAsState(
@@ -81,9 +91,13 @@ private fun StatCard(
         label = "statCount"
     )
 
+    // Cada contador filtra la lista por su estado: era lo que la gente intentaba tocar.
     Card(
+        onClick = onClick,
         modifier = modifier.clearAndSetSemantics {
             contentDescription = "$count $label"
+            role = Role.Button
+            onClick { onClick(); true }
         },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(

@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -235,6 +235,9 @@ private fun HomeScreenContent(
                         activeCount = state.activeCount,
                         expiringCount = state.expiringCount,
                         expiredCount = state.expiredCount,
+                        onActiveClick = { onFilterSelected(WarrantyFilter.ACTIVE) },
+                        onExpiringClick = { onFilterSelected(WarrantyFilter.EXPIRING_SOON) },
+                        onExpiredClick = { onFilterSelected(WarrantyFilter.EXPIRED) },
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
@@ -256,11 +259,10 @@ private fun HomeScreenContent(
                 }
 
                 // Warranty Cards with staggered animation
-                items(
+                itemsIndexed(
                     items = state.filteredWarranties,
-                    key = { it.id }
-                ) { warranty ->
-                    val index = state.filteredWarranties.indexOf(warranty)
+                    key = { _, warranty -> warranty.id }
+                ) { index, warranty ->
                     // El escalonado se aplica solo a las tarjetas del primer viewport y
                     // solo la primera vez que aparecen. Con el índice absoluto y
                     // LaunchedEffect(Unit), una tarjeta profunda esperaba su delay
