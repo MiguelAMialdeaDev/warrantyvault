@@ -46,7 +46,8 @@ class HomeViewModel(
                         loadError = false,
                         warranties = warranties,
                         isPremium = isPremium,
-                        usedSlots = warranties.size
+                        // Las archivadas no ocupan hueco del plan gratuito.
+                        usedSlots = warranties.count { !it.isArchived }
                     )
                 }
             }

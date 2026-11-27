@@ -11,6 +11,17 @@
     <string name="detail_not_found">Esta garantía ya no existe.</string>
     <string name="detail_error_generic">Algo ha fallado. Inténtalo de nuevo.</string>
 
+    <string name="detail_tracking_title">Seguimiento</string>
+    <string name="detail_tracking_none">Sin reclamaciones. Si la llevas al servicio técnico, márcala aquí.</string>
+    <string name="detail_tracking_since">%1$s desde el %2$s</string>
+    <string name="detail_tracking_start_claim">En reclamación</string>
+    <string name="detail_tracking_mark_repaired">Reparada</string>
+    <string name="detail_tracking_clear">Quitar estado</string>
+    <string name="detail_tracking_archive">Archivar</string>
+    <string name="detail_tracking_unarchive">Desarchivar</string>
+    <string name="detail_tracking_limit">Ya tienes 3 garantías en uso. Hazte Premium o archiva otra para recuperar esta.</string>
+    <string name="detail_tracking_archived_done">Archivada. Ya no te avisaremos ni cuenta para tu límite.</string>
+
     <string name="detail_purchased_on">Comprado %1$s</string>
     <string name="detail_expires_on">Expira %1$s</string>
     <plurals name="detail_days_remaining_label">

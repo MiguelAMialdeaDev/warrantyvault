@@ -23,5 +23,8 @@
     <string name="expired_years">Expired %1$d years ago</string>
 
     <string name="privacy_policy_label">Privacy policy</string>
+    <string name="tracking_in_claim">In claim</string>
+    <string name="tracking_repaired">Repaired</string>
+    <string name="tracking_archived">Archived</string>
     <string name="privacy_policy_url" translatable="false">https://miguelamialdeadev.github.io/warrantyvault-legal/privacy-policy.en</string>
 </resources>

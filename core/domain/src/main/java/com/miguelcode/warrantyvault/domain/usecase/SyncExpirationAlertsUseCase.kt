@@ -38,7 +38,7 @@ class SyncExpirationAlertsUseCase(
         val today = LocalDate.now()
         warrantyRepository.getAllWarranties().first()
             // Una garantía ya vencida no tiene ningún aviso futuro que dar.
-            .filter { !it.warrantyEndDate.isBefore(today) }
+            .filter { !it.warrantyEndDate.isBefore(today) && !it.isArchived }
             .forEach { notificationScheduler.scheduleExpirationAlerts(it) }
     }
 

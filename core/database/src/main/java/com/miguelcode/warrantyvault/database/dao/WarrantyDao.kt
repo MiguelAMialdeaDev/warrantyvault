@@ -31,6 +31,7 @@ interface WarrantyDao {
     @Delete
     suspend fun delete(warranty: WarrantyEntity)
 
-    @Query("SELECT COUNT(*) FROM warranties")
+    // Las archivadas no ocupan hueco del plan gratuito.
+    @Query("SELECT COUNT(*) FROM warranties WHERE tracking != 'ARCHIVED'")
     suspend fun getCount(): Int
 }

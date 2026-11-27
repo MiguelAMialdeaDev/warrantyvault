@@ -26,6 +26,7 @@
     <string name="home_filter_active">Activas</string>
     <string name="home_filter_expiring">Por vencer</string>
     <string name="home_filter_expired">Expiradas</string>
+    <string name="home_filter_archived">Archivadas</string>
 
     <string name="home_stat_active">Activas</string>
     <string name="home_stat_expiring">Por vencer</string>

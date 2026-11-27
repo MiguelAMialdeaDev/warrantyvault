@@ -46,7 +46,7 @@ class DetailViewModelTest {
     fun `loads warranty on init`() = runTest {
         every { warrantyRepository.getWarrantyByIdFlow(1L) } returns flowOf(sampleWarranty)
 
-        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase)
+        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase, mockk(relaxed = true))
 
         vm.state.test {
             val state = expectMostRecentItem()
@@ -60,7 +60,7 @@ class DetailViewModelTest {
     fun `null warranty leaves state empty`() = runTest {
         every { warrantyRepository.getWarrantyByIdFlow(99L) } returns flowOf(null)
 
-        val vm = DetailViewModel(99L, warrantyRepository, deleteWarrantyUseCase)
+        val vm = DetailViewModel(99L, warrantyRepository, deleteWarrantyUseCase, mockk(relaxed = true))
 
         vm.state.test {
             val state = expectMostRecentItem()
@@ -74,7 +74,7 @@ class DetailViewModelTest {
         every { warrantyRepository.getWarrantyByIdFlow(1L) } returns flowOf(sampleWarranty)
         coEvery { deleteWarrantyUseCase(sampleWarranty) } returns Result.Success(Unit)
 
-        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase)
+        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase, mockk(relaxed = true))
 
         vm.state.test {
             expectMostRecentItem()
@@ -91,7 +91,7 @@ class DetailViewModelTest {
             RuntimeException("DB error")
         )
 
-        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase)
+        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase, mockk(relaxed = true))
 
         vm.state.test {
             expectMostRecentItem()
@@ -106,7 +106,7 @@ class DetailViewModelTest {
     fun `delete does nothing when no warranty loaded`() = runTest {
         every { warrantyRepository.getWarrantyByIdFlow(1L) } returns flowOf(null)
 
-        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase)
+        val vm = DetailViewModel(1L, warrantyRepository, deleteWarrantyUseCase, mockk(relaxed = true))
 
         vm.state.test {
             val before = expectMostRecentItem()

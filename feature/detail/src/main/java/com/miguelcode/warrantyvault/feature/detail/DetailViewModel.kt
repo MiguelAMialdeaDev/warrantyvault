@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.miguelcode.warrantyvault.domain.model.Result
 import com.miguelcode.warrantyvault.domain.repository.WarrantyRepository
 import com.miguelcode.warrantyvault.domain.usecase.DeleteWarrantyUseCase
+import com.miguelcode.warrantyvault.domain.usecase.PremiumLimitReachedException
+import com.miguelcode.warrantyvault.domain.usecase.SetWarrantyTrackingUseCase
+import com.miguelcode.warrantyvault.domain.model.WarrantyTracking
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -15,7 +18,8 @@ import kotlinx.coroutines.launch
 class DetailViewModel(
     private val warrantyId: Long,
     private val warrantyRepository: WarrantyRepository,
-    private val deleteWarrantyUseCase: DeleteWarrantyUseCase
+    private val deleteWarrantyUseCase: DeleteWarrantyUseCase,
+    private val setTrackingUseCase: SetWarrantyTrackingUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DetailState())
@@ -48,6 +52,28 @@ class DetailViewModel(
                 }
             }
         }
+    }
+
+    fun onTrackingChange(tracking: WarrantyTracking) {
+        val warranty = _state.value.warranty ?: return
+        if (_state.value.isUpdatingTracking) return
+        _state.update { it.copy(isUpdatingTracking = true) }
+        viewModelScope.launch {
+            val result = setTrackingUseCase(warranty, tracking)
+            val message = when {
+                result is Result.Error && result.exception is PremiumLimitReachedException ->
+                    TrackingMessage.LimitReached
+                result is Result.Error -> TrackingMessage.Failed
+                tracking == WarrantyTracking.ARCHIVED -> TrackingMessage.Archived
+                else -> null
+            }
+            // La garantía en pantalla se actualiza sola: el Flow de Room re-emite.
+            _state.update { it.copy(isUpdatingTracking = false, trackingMessage = message) }
+        }
+    }
+
+    fun onTrackingMessageShown() {
+        _state.update { it.copy(trackingMessage = null) }
     }
 
     fun onDelete() {

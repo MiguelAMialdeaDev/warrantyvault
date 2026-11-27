@@ -12,5 +12,6 @@ interface WarrantyRepository {
     suspend fun addWarranty(warranty: Warranty): Result<Long>
     suspend fun updateWarranty(warranty: Warranty): Result<Unit>
     suspend fun deleteWarranty(warranty: Warranty): Result<Unit>
+    /** Garantías que ocupan hueco en el plan gratuito: todas menos las archivadas. */
     suspend fun getCount(): Int
 }

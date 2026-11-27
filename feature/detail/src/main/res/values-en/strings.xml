@@ -11,6 +11,17 @@
     <string name="detail_not_found">This warranty no longer exists.</string>
     <string name="detail_error_generic">Something went wrong. Please try again.</string>
 
+    <string name="detail_tracking_title">Tracking</string>
+    <string name="detail_tracking_none">No claims. If you take it in for repair, mark it here.</string>
+    <string name="detail_tracking_since">%1$s since %2$s</string>
+    <string name="detail_tracking_start_claim">In claim</string>
+    <string name="detail_tracking_mark_repaired">Repaired</string>
+    <string name="detail_tracking_clear">Clear status</string>
+    <string name="detail_tracking_archive">Archive</string>
+    <string name="detail_tracking_unarchive">Unarchive</string>
+    <string name="detail_tracking_limit">You already have 3 warranties in use. Go Premium or archive another one to bring this one back.</string>
+    <string name="detail_tracking_archived_done">Archived. You will not get alerts and it does not count towards your limit.</string>
+
     <string name="detail_purchased_on">Purchased %1$s</string>
     <string name="detail_expires_on">Expires %1$s</string>
     <plurals name="detail_days_remaining_label">

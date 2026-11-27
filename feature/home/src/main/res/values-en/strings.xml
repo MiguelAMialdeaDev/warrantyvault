@@ -26,6 +26,7 @@
     <string name="home_filter_active">Active</string>
     <string name="home_filter_expiring">Expiring</string>
     <string name="home_filter_expired">Expired</string>
+    <string name="home_filter_archived">Archived</string>
 
     <string name="home_stat_active">Active</string>
     <string name="home_stat_expiring">Expiring</string>

@@ -24,5 +24,8 @@
 
     <!-- Enlaces legales. La política existe en ES y EN, así que cada idioma enlaza la suya. -->
     <string name="privacy_policy_label">Política de privacidad</string>
+    <string name="tracking_in_claim">En reclamación</string>
+    <string name="tracking_repaired">Reparada</string>
+    <string name="tracking_archived">Archivada</string>
     <string name="privacy_policy_url" translatable="false">https://miguelamialdeadev.github.io/warrantyvault-legal/privacy-policy.es</string>
 </resources>

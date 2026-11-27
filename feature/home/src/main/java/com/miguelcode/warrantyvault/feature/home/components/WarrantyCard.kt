@@ -50,6 +50,7 @@ import com.miguelcode.warrantyvault.ui.common.StatusBadge
 import com.miguelcode.warrantyvault.ui.common.WarrantyProgressBar
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
 import com.miguelcode.warrantyvault.ui.theme.categoryColors
+import com.miguelcode.warrantyvault.ui.common.label
 import java.time.LocalDate
 import androidx.compose.ui.res.pluralStringResource
 
@@ -73,8 +74,10 @@ fun WarrantyCard(
         else -> (-warranty.daysRemaining).toInt().let { pluralStringResource(R.plurals.home_a11y_expired_days, it, it) }
     }
     val categoryName = warranty.category.displayName()
-    val cardContentDescription =
-        "${warranty.productName}, $categoryName, $statusLabel, $daysLabel"
+    val trackingLabel = warranty.tracking.label()
+    val cardContentDescription = listOfNotNull(
+        warranty.productName, categoryName, trackingLabel, statusLabel, daysLabel
+    ).joinToString(", ")
 
     // clearAndSetSemantics borra el subárbol de a11y de los hijos para que TalkBack
     // no lea cada Text por separado además del contentDescription. Se restituye el
@@ -128,6 +131,17 @@ fun WarrantyCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (trackingLabel != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = trackingLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     WarrantyProgressBar(

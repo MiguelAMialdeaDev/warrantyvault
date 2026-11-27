@@ -38,6 +38,9 @@ import com.miguelcode.warrantyvault.feature.detail.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miguelcode.warrantyvault.ui.common.ConfirmDeleteDialog
 import com.miguelcode.warrantyvault.feature.detail.components.InfoCard
+import com.miguelcode.warrantyvault.feature.detail.components.TrackingSection
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import com.miguelcode.warrantyvault.feature.detail.components.StatusSection
 import com.miguelcode.warrantyvault.feature.detail.components.WarrantyHero
 import com.miguelcode.warrantyvault.feature.detail.components.ReceiptPhotoViewer
@@ -69,6 +72,19 @@ fun DetailScreen(
             },
             onDismiss = { showDeleteDialog = false }
         )
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val trackingText = when (state.trackingMessage) {
+        TrackingMessage.Archived -> stringResource(R.string.detail_tracking_archived_done)
+        TrackingMessage.LimitReached -> stringResource(R.string.detail_tracking_limit)
+        TrackingMessage.Failed -> stringResource(R.string.detail_error_generic)
+        null -> null
+    }
+    LaunchedEffect(trackingText) {
+        val text = trackingText ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(text)
+        viewModel.onTrackingMessageShown()
     }
 
     viewerPhoto?.let { photo ->
@@ -118,6 +134,7 @@ fun DetailScreen(
                 )
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         when {
@@ -155,6 +172,11 @@ fun DetailScreen(
                         modifier = Modifier.offset(y = (-24).dp)
                     )
                     InfoCard(warranty = warranty)
+                    TrackingSection(
+                        warranty = warranty,
+                        enabled = !state.isUpdatingTracking,
+                        onChange = viewModel::onTrackingChange
+                    )
                     Spacer(
                         modifier = Modifier
                             .height(32.dp)

@@ -247,6 +247,7 @@ private fun HomeScreenContent(
                     FilterChipsRow(
                         selectedFilter = state.selectedFilter,
                         onFilterSelected = onFilterSelected,
+                        showArchived = state.hasArchived,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }

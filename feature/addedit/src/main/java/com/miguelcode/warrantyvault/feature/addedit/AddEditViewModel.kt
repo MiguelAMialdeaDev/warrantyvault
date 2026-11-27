@@ -10,6 +10,7 @@ import com.miguelcode.warrantyvault.domain.util.toPriceInput
 import com.miguelcode.warrantyvault.domain.util.toPriceOrNull
 import com.miguelcode.warrantyvault.domain.util.warrantyMonths
 import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
+import com.miguelcode.warrantyvault.domain.model.WarrantyTracking
 import com.miguelcode.warrantyvault.domain.usecase.AddWarrantyUseCase
 import com.miguelcode.warrantyvault.domain.usecase.CheckPremiumLimitUseCase
 import com.miguelcode.warrantyvault.domain.usecase.GetWarrantyByIdUseCase
@@ -99,7 +100,9 @@ class AddEditViewModel(
                             warrantyMonthsError = null,
                             receiptPhotoPath = warranty.receiptPhotoPath,
                             notes = warranty.notes,
-                            createdAt = warranty.createdAt
+                            createdAt = warranty.createdAt,
+                            tracking = warranty.tracking,
+                            trackingDate = warranty.trackingDate
                         )
                     }
                 }
@@ -300,7 +303,11 @@ class AddEditViewModel(
                 warrantyEndDate = current.warrantyEndDate,
                 receiptPhotoPath = current.receiptPhotoPath,
                 notes = current.notes.trim(),
-                createdAt = current.createdAt ?: LocalDateTime.now()
+                createdAt = current.createdAt ?: LocalDateTime.now(),
+                // Sin esto, editar una garantía archivada o en reclamación la devolvía a
+                // "sin seguimiento".
+                tracking = current.tracking,
+                trackingDate = current.trackingDate
             )
 
             val result = if (current.isEditMode) {
@@ -354,6 +361,8 @@ class AddEditViewModel(
         handle[KEY_NOTES] = state.notes
         handle[KEY_CREATED_AT] = state.createdAt?.toString()
         handle[KEY_HAS_CHANGES] = state.hasChanges
+        handle[KEY_TRACKING] = state.tracking.name
+        handle[KEY_TRACKING_DATE] = state.trackingDate?.toEpochDay() ?: NO_DATE
     }
 
     private fun restoreDraft(): AddEditState? {
@@ -376,7 +385,12 @@ class AddEditViewModel(
             notes = handle.get<String>(KEY_NOTES).orEmpty().take(MAX_NOTES_LENGTH),
             createdAt = handle.get<String>(KEY_CREATED_AT)
                 ?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() },
-            hasChanges = handle.get<Boolean>(KEY_HAS_CHANGES) ?: false
+            hasChanges = handle.get<Boolean>(KEY_HAS_CHANGES) ?: false,
+            tracking = handle.get<String>(KEY_TRACKING)
+                ?.let { name -> WarrantyTracking.entries.firstOrNull { it.name == name } }
+                ?: WarrantyTracking.NONE,
+            trackingDate = (handle.get<Long>(KEY_TRACKING_DATE) ?: NO_DATE)
+                .takeIf { it != NO_DATE }?.let(LocalDate::ofEpochDay)
         )
     }
 
@@ -407,5 +421,7 @@ class AddEditViewModel(
         private const val KEY_NOTES = "draft_notes"
         private const val KEY_CREATED_AT = "draft_created_at"
         private const val KEY_HAS_CHANGES = "draft_has_changes"
+        private const val KEY_TRACKING = "draft_tracking"
+        private const val KEY_TRACKING_DATE = "draft_tracking_date"
     }
 }

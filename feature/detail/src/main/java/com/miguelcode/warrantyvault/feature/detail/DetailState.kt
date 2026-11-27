@@ -9,5 +9,10 @@ data class DetailState(
     val isDeleted: Boolean = false,
     /** El id pedido no existe: nunca llegó a cargarse ninguna garantía. */
     val notFound: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isUpdatingTracking: Boolean = false,
+    /** Aviso pendiente de enseñar tras cambiar el seguimiento. */
+    val trackingMessage: TrackingMessage? = null
 )
+
+enum class TrackingMessage { Archived, LimitReached, Failed }

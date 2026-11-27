@@ -129,6 +129,25 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `archived warranties stay out of the list, the counters and the free limit`() = runTest {
+        val archived = sampleWarranty(id = 1, name = "old")
+            .copy(tracking = com.miguelcode.warrantyvault.domain.model.WarrantyTracking.ARCHIVED)
+        val live = sampleWarranty(id = 2, name = "live")
+        every { getWarrantiesUseCase() } returns flowOf(listOf(archived, live))
+        every { preferencesRepository.isPremiumFlow } returns flowOf(false)
+
+        val vm = createViewModel()
+        val state = vm.state.value
+
+        assertEquals(listOf("live"), state.filteredWarranties.map { it.productName })
+        assertEquals(1, state.activeCount)
+        assertEquals(1, state.usedSlots)
+        assertTrue(state.hasArchived)
+        vm.onFilterSelected(WarrantyFilter.ARCHIVED)
+        assertEquals(listOf("old"), vm.state.value.filteredWarranties.map { it.productName })
+    }
+
+    @Test
     fun `filter updates correctly`() = runTest {
         every { getWarrantiesUseCase() } returns flowOf(emptyList())
         every { preferencesRepository.isPremiumFlow } returns flowOf(false)

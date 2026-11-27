@@ -21,14 +21,18 @@ import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
 fun FilterChipsRow(
     selectedFilter: WarrantyFilter,
     onFilterSelected: (WarrantyFilter) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showArchived: Boolean = false
 ) {
-    val filters = listOf(
-        WarrantyFilter.ALL to stringResource(R.string.home_filter_all),
-        WarrantyFilter.ACTIVE to stringResource(R.string.home_filter_active),
-        WarrantyFilter.EXPIRING_SOON to stringResource(R.string.home_filter_expiring),
-        WarrantyFilter.EXPIRED to stringResource(R.string.home_filter_expired)
-    )
+    val filters = buildList {
+        add(WarrantyFilter.ALL to stringResource(R.string.home_filter_all))
+        add(WarrantyFilter.ACTIVE to stringResource(R.string.home_filter_active))
+        add(WarrantyFilter.EXPIRING_SOON to stringResource(R.string.home_filter_expiring))
+        add(WarrantyFilter.EXPIRED to stringResource(R.string.home_filter_expired))
+        if (showArchived || selectedFilter == WarrantyFilter.ARCHIVED) {
+            add(WarrantyFilter.ARCHIVED to stringResource(R.string.home_filter_archived))
+        }
+    }
 
     LazyRow(
         modifier = modifier,

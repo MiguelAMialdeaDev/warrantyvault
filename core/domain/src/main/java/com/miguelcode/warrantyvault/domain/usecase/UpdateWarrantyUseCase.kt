@@ -28,7 +28,8 @@ class UpdateWarrantyUseCase(
             // pero los ya mostrados solo se olvidan si cambió la fecha de fin.
             val endDateChanged = previous?.warrantyEndDate != warranty.warrantyEndDate
             notificationScheduler.cancelAlerts(warranty.id, forgetDelivered = endDateChanged)
-            if (preferencesRepository.notificationsEnabledFlow.first()) {
+            // Una archivada no avisa: editarla no debe devolverle los avisos.
+            if (!warranty.isArchived && preferencesRepository.notificationsEnabledFlow.first()) {
                 notificationScheduler.scheduleExpirationAlerts(warranty)
             }
             if (previousPhoto != null && previousPhoto != warranty.receiptPhotoPath) {

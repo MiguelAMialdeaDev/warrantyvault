@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.miguelcode.warrantyvault.BuildConfig
 import com.miguelcode.warrantyvault.analytics.NoOpAnalyticsTracker
 import com.miguelcode.warrantyvault.database.AppDatabase
+import com.miguelcode.warrantyvault.database.MIGRATION_1_2
 import com.miguelcode.warrantyvault.database.datasource.WarrantyLocalDataSource
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsTracker
 import com.miguelcode.warrantyvault.database.repository.PreferencesRepositoryImpl
@@ -18,6 +19,7 @@ import com.miguelcode.warrantyvault.domain.usecase.DeleteWarrantyUseCase
 import com.miguelcode.warrantyvault.domain.usecase.GetWarrantiesUseCase
 import com.miguelcode.warrantyvault.domain.usecase.GetWarrantyByIdUseCase
 import com.miguelcode.warrantyvault.domain.usecase.SyncExpirationAlertsUseCase
+import com.miguelcode.warrantyvault.domain.usecase.SetWarrantyTrackingUseCase
 import com.miguelcode.warrantyvault.domain.usecase.UpdateWarrantyUseCase
 import com.miguelcode.warrantyvault.billing.BillingManager
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
@@ -41,6 +43,7 @@ import java.io.File
 val databaseModule = module {
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "warranty_vault_db")
+            .addMigrations(MIGRATION_1_2)
             .apply {
                 // En debug aceptamos perder datos al cambiar el esquema durante el desarrollo.
                 // En release nunca: las migraciones tienen que estar definidas (addMigrations)
@@ -83,6 +86,7 @@ val useCaseModule = module {
     factory { UpdateWarrantyUseCase(get(), get(), get(), get(), get()) }
     factory { DeleteWarrantyUseCase(get(), get(), get(), get()) }
     factory { CheckPremiumLimitUseCase(get(), get()) }
+    factory { SetWarrantyTrackingUseCase(get(), get(), get(), get()) }
     factory { SyncExpirationAlertsUseCase(get(), get(), get()) }
 }
 
@@ -92,7 +96,8 @@ val viewModelModule = module {
         DetailViewModel(
             warrantyId = parameters.get(),
             warrantyRepository = get(),
-            deleteWarrantyUseCase = get()
+            deleteWarrantyUseCase = get(),
+            setTrackingUseCase = get()
         )
     }
     viewModel { parameters ->

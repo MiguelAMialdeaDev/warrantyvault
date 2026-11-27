@@ -1,6 +1,7 @@
 package com.miguelcode.warrantyvault.feature.addedit
 
 import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
+import com.miguelcode.warrantyvault.domain.model.WarrantyTracking
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -49,7 +50,10 @@ data class AddEditState(
     val formError: AddEditError? = null,
     val canAdd: Boolean = true,
     /** El usuario ha tocado algo: salir sin guardar pide confirmación. */
-    val hasChanges: Boolean = false
+    val hasChanges: Boolean = false,
+    /** Seguimiento de la garantía editada. El formulario no lo cambia, solo lo conserva. */
+    val tracking: WarrantyTracking = WarrantyTracking.NONE,
+    val trackingDate: LocalDate? = null
 ) {
     val isFormValid: Boolean
         get() = productName.isNotBlank() &&

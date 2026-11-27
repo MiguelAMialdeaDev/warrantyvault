@@ -14,8 +14,13 @@ data class Warranty(
     val warrantyEndDate: LocalDate,
     val receiptPhotoPath: String? = null,
     val notes: String = "",
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val tracking: WarrantyTracking = WarrantyTracking.NONE,
+    /** Cuándo se puso el seguimiento actual. Null sin seguimiento. */
+    val trackingDate: LocalDate? = null
 ) {
+    val isArchived: Boolean get() = tracking == WarrantyTracking.ARCHIVED
+
     /**
      * Días a partir de los cuales la garantía se considera "por vencer".
      *
