@@ -1,8 +1,12 @@
 package com.miguelcode.warrantyvault.feature.addedit
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -32,7 +36,12 @@ object PhotoStorage {
         val photosDir = File(context.filesDir, "ticket_photos").apply {
             if (!exists()) mkdirs()
         }
-        val destFile = File(photosDir, "${UUID.randomUUID()}.jpg")
+        val name = UUID.randomUUID().toString()
+        val destFile = File(photosDir, "$name.jpg")
+        // Copia cruda en la caché: el original se lee una sola vez (puede venir de la nube)
+        // y desde un fichero se pueden leer las dimensiones y el EXIF antes de decodificar.
+        val rawFile = File(context.cacheDir, "$name.raw")
+        val tmpFile = File(photosDir, "$name.tmp")
 
         return runCatching {
             // Si openInputStream devuelve null (provider caído, URI ya no accesible), el
@@ -41,18 +50,96 @@ object PhotoStorage {
             val input = context.contentResolver.openInputStream(sourceUri)
                 ?: return null
             input.use { source ->
-                destFile.outputStream().use { output ->
+                rawFile.outputStream().use { output ->
                     copyWithLimit(source, output, MAX_PHOTO_BYTES)
                 }
             }
+            // Antes se guardaba el original tal cual: hasta 20 MB por ticket, con la
+            // ubicación GPS y el modelo del móvil en el EXIF, y con extensión .jpg aunque
+            // fuera PNG o HEIC. Ahora se reduce, se gira según el EXIF y se vuelve a
+            // codificar como JPEG sin metadatos (unos cientos de KB).
+            val bitmap = decodeUpright(rawFile) ?: return@runCatching null
+            try {
+                tmpFile.outputStream().use { out ->
+                    check(bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out))
+                }
+            } finally {
+                bitmap.recycle()
+            }
+            // Renombrado al final: nunca queda a la vista un JPEG a medio escribir.
+            check(tmpFile.renameTo(destFile))
             destFile.absolutePath
         }.getOrElse {
             // Una copia interrumpida a medias deja un fichero parcial que ya no
             // referencia nadie: se borra aquí porque nada más lo va a limpiar.
             destFile.delete()
             null
+        }.also {
+            rawFile.delete()
+            tmpFile.delete()
         }
     }
+
+    /** Decodifica reducida a [MAX_SIDE_PX] como mucho y girada según su EXIF. */
+    private fun decodeUpright(file: File): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = sampleSizeFor(bounds.outWidth, bounds.outHeight, MAX_SIDE_PX)
+        }
+        val sampled = BitmapFactory.decodeFile(file.path, options) ?: return null
+        val scaled = scaleDown(sampled, MAX_SIDE_PX)
+
+        val orientation = runCatching {
+            ExifInterface(file.path).getAttributeInt(
+                ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL
+            )
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+        val matrix = orientationMatrix(orientation) ?: return scaled
+        return Bitmap.createBitmap(scaled, 0, 0, scaled.width, scaled.height, matrix, true)
+            .also { if (it !== scaled) scaled.recycle() }
+    }
+
+    /** inSampleSize solo reduce en potencias de 2: el ajuste fino lo hace [scaleDown]. */
+    private fun scaleDown(bitmap: Bitmap, maxSide: Int): Bitmap {
+        val longest = maxOf(bitmap.width, bitmap.height)
+        if (longest <= maxSide) return bitmap
+        val ratio = maxSide.toFloat() / longest
+        return Bitmap.createScaledBitmap(
+            bitmap,
+            (bitmap.width * ratio).toInt().coerceAtLeast(1),
+            (bitmap.height * ratio).toInt().coerceAtLeast(1),
+            true
+        ).also { if (it !== bitmap) bitmap.recycle() }
+    }
+
+    private fun orientationMatrix(orientation: Int): Matrix? = when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> Matrix().apply { postRotate(90f) }
+        ExifInterface.ORIENTATION_ROTATE_180 -> Matrix().apply { postRotate(180f) }
+        ExifInterface.ORIENTATION_ROTATE_270 -> Matrix().apply { postRotate(270f) }
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> Matrix().apply { postScale(-1f, 1f) }
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> Matrix().apply { postScale(1f, -1f) }
+        ExifInterface.ORIENTATION_TRANSPOSE -> Matrix().apply { postRotate(90f); postScale(-1f, 1f) }
+        ExifInterface.ORIENTATION_TRANSVERSE -> Matrix().apply { postRotate(270f); postScale(-1f, 1f) }
+        else -> null
+    }
+
+    /**
+     * Mayor potencia de 2 que deja el lado largo en [maxSide] o por encima. Así se
+     * decodifica sin cargar en memoria una foto de 50 MP entera.
+     */
+    fun sampleSizeFor(width: Int, height: Int, maxSide: Int): Int {
+        var sample = 1
+        val longest = maxOf(width, height)
+        while (longest / (sample * 2) >= maxSide) sample *= 2
+        return sample
+    }
+
+    /** Lado largo máximo guardado: de sobra para leer un ticket con zoom. */
+    const val MAX_SIDE_PX = 2048
+    private const val JPEG_QUALITY = 85
 
     /**
      * Fichero temporal donde la cámara del sistema deja la foto. Vive en la caché y se
