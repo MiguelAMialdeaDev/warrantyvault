@@ -23,6 +23,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import com.miguelcode.warrantyvault.domain.backup.ImportSummary
+import com.miguelcode.warrantyvault.domain.backup.InvalidBackupException
+import com.miguelcode.warrantyvault.domain.backup.WarrantyBackup
+import com.miguelcode.warrantyvault.domain.model.Result
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -33,6 +37,7 @@ class SettingsViewModelTest {
     private val preferencesRepository: PreferencesRepository = mockk()
     private val syncExpirationAlerts: SyncExpirationAlertsUseCase = mockk()
     private val billingManager: BillingManagerContract = mockk()
+    private val backup: WarrantyBackup = mockk()
 
     private fun stubFlows(
         isPremium: Boolean = false,
@@ -46,7 +51,7 @@ class SettingsViewModelTest {
     }
 
     private fun createViewModel() =
-        SettingsViewModel(preferencesRepository, syncExpirationAlerts, billingManager)
+        SettingsViewModel(preferencesRepository, syncExpirationAlerts, billingManager, backup)
 
     @Test
     fun `isPremium exposes the value from the repository`() = runTest {
@@ -201,5 +206,22 @@ class SettingsViewModelTest {
     private companion object {
         // Mismo valor que SettingsViewModel.RESTORE_TIMEOUT_MS, que es internal a su módulo.
         const val SETTINGS_RESTORE_TIMEOUT_MS = 10_000L
+    }
+
+    @Test
+    fun `import reports what was imported and that the file was not a backup`() = runTest {
+        stubFlows()
+        val summary = ImportSummary(imported = 4, skippedDuplicates = 1, archivedForLimit = 2)
+        coEvery { backup.importZip("ok") } returns Result.Success(summary)
+        coEvery { backup.importZip("bad") } returns Result.Error(InvalidBackupException("x"))
+        val vm = createViewModel()
+
+        vm.backupResults.test {
+            vm.importBackup("ok")
+            assertEquals(SettingsViewModel.BackupResult.Imported(summary), awaitItem())
+            vm.importBackup("bad")
+            assertEquals(SettingsViewModel.BackupResult.NotABackup, awaitItem())
+        }
+        assertEquals(false, vm.backupBusy.value)
     }
 }

@@ -25,4 +25,33 @@
     <string name="settings_contact_subject">WarrantyVault</string>
     <string name="settings_permission_denied">Permission denied. Turn it on in Settings to get reminders.</string>
     <string name="settings_open_settings">Open Settings</string>
+
+    <string name="settings_backup_section">Backup</string>
+    <string name="settings_backup_export">Export backup (with photos)</string>
+    <string name="settings_backup_import">Import backup</string>
+    <string name="settings_backup_pdf">Export PDF for claims</string>
+    <string name="settings_backup_pdf_premium">Export PDF for claims (Premium)</string>
+    <string name="settings_backup_hint">The automatic Google backup does not keep your receipt photos. Save this backup to Drive or your computer so you keep them when you change phones.</string>
+    <string name="settings_backup_failed">That did not work. Please try again.</string>
+    <string name="settings_backup_not_a_backup">That file is not a WarrantyVault backup.</string>
+    <plurals name="settings_backup_exported">
+        <item quantity="one">Backup saved with %d warranty.</item>
+        <item quantity="other">Backup saved with %d warranties.</item>
+    </plurals>
+    <plurals name="settings_backup_pdf_done">
+        <item quantity="one">PDF saved with %d warranty.</item>
+        <item quantity="other">PDF saved with %d warranties.</item>
+    </plurals>
+    <plurals name="settings_backup_imported">
+        <item quantity="one">%d warranty imported.</item>
+        <item quantity="other">%d warranties imported.</item>
+    </plurals>
+    <plurals name="settings_backup_duplicates">
+        <item quantity="one">%d was already there and was not duplicated.</item>
+        <item quantity="other">%d were already there and were not duplicated.</item>
+    </plurals>
+    <plurals name="settings_backup_archived_limit">
+        <item quantity="one">%d was added as archived because the free plan is full.</item>
+        <item quantity="other">%d were added as archived because the free plan is full.</item>
+    </plurals>
 </resources>

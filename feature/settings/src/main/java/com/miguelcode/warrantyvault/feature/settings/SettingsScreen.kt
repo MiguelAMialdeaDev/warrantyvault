@@ -25,6 +25,8 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Email
@@ -99,6 +101,48 @@ fun SettingsScreen(
             snackbarHostState.showSnackbar(
                 if (result == SettingsViewModel.RestoreResult.Restored) restoredMessage else nothingFoundMessage
             )
+        }
+    }
+
+    val backupBusy by viewModel.backupBusy.collectAsStateWithLifecycle()
+    // Los destinos y el origen los elige el usuario con el selector del sistema (Drive,
+    // Descargas, un USB...): la app no necesita ningún permiso de almacenamiento.
+    val exportZipLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri -> uri?.let { viewModel.exportBackup(it.toString()) } }
+    val importZipLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { viewModel.importBackup(it.toString()) } }
+    val pdfLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri -> uri?.let { viewModel.exportPdf(it.toString()) } }
+
+    val res = context.resources
+    val backupFailed = stringResource(R.string.settings_backup_failed)
+    val notABackup = stringResource(R.string.settings_backup_not_a_backup)
+    LaunchedEffect(viewModel) {
+        viewModel.backupResults.collect { result ->
+            val message = when (result) {
+                is SettingsViewModel.BackupResult.Exported ->
+                    res.getQuantityString(R.plurals.settings_backup_exported, result.count, result.count)
+                is SettingsViewModel.BackupResult.PdfExported ->
+                    res.getQuantityString(R.plurals.settings_backup_pdf_done, result.count, result.count)
+                is SettingsViewModel.BackupResult.Imported -> buildString {
+                    val s = result.summary
+                    append(res.getQuantityString(R.plurals.settings_backup_imported, s.imported, s.imported))
+                    if (s.skippedDuplicates > 0) {
+                        append(' ')
+                        append(res.getQuantityString(R.plurals.settings_backup_duplicates, s.skippedDuplicates, s.skippedDuplicates))
+                    }
+                    if (s.archivedForLimit > 0) {
+                        append(' ')
+                        append(res.getQuantityString(R.plurals.settings_backup_archived_limit, s.archivedForLimit, s.archivedForLimit))
+                    }
+                }
+                SettingsViewModel.BackupResult.NotABackup -> notABackup
+                SettingsViewModel.BackupResult.Failed -> backupFailed
+            }
+            snackbarHostState.showSnackbar(message)
         }
     }
 
@@ -300,6 +344,49 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            // Backup section. La copia automática de Google no lleva las fotos de los
+            // tickets: esto es lo único que las saca del móvil.
+            Text(stringResource(R.string.settings_backup_section), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            Spacer(Modifier.height(8.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column {
+                    SettingsLinkRow(
+                        icon = Icons.Outlined.Backup,
+                        label = stringResource(R.string.settings_backup_export),
+                        enabled = !backupBusy,
+                        onClick = { exportZipLauncher.launch(backupFileName("zip")) }
+                    )
+                    SettingsLinkRow(
+                        icon = Icons.Outlined.Restore,
+                        label = stringResource(R.string.settings_backup_import),
+                        enabled = !backupBusy,
+                        onClick = { importZipLauncher.launch(arrayOf("application/zip", "application/octet-stream")) }
+                    )
+                    SettingsLinkRow(
+                        icon = Icons.Outlined.PictureAsPdf,
+                        label = stringResource(
+                            if (isPremium) R.string.settings_backup_pdf else R.string.settings_backup_pdf_premium
+                        ),
+                        enabled = !backupBusy,
+                        // El PDF es Premium: sin suscripción lleva a la pantalla de planes.
+                        onClick = {
+                            if (isPremium) pdfLauncher.launch(backupFileName("pdf")) else onNavigateToPremium()
+                        }
+                    )
+                    Text(
+                        stringResource(R.string.settings_backup_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
             // App section
             Text(stringResource(R.string.settings_app), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             Spacer(Modifier.height(8.dp))
@@ -389,3 +476,6 @@ private fun SettingsLinkRow(
         )
     }
 }
+
+/** Nombre propuesto en el selector: warrantyvault-2026-11-27.zip */
+private fun backupFileName(extension: String) = "warrantyvault-${java.time.LocalDate.now()}.$extension"

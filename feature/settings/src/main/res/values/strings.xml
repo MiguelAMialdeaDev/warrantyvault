@@ -26,4 +26,33 @@
     <string name="settings_contact_email" translatable="false">miguelmialdeamonzo@gmail.com</string>
     <string name="settings_permission_denied">Permiso denegado. Actívalo desde Ajustes para recibir avisos.</string>
     <string name="settings_open_settings">Abrir Ajustes</string>
+
+    <string name="settings_backup_section">Copia de seguridad</string>
+    <string name="settings_backup_export">Exportar copia (con fotos)</string>
+    <string name="settings_backup_import">Importar copia</string>
+    <string name="settings_backup_pdf">Exportar PDF para reclamar</string>
+    <string name="settings_backup_pdf_premium">Exportar PDF para reclamar (Premium)</string>
+    <string name="settings_backup_hint">La copia automática de Google no guarda las fotos de los tickets. Guarda esta copia en Drive o en tu ordenador para no perderlas si cambias de móvil.</string>
+    <string name="settings_backup_failed">No se ha podido completar. Inténtalo de nuevo.</string>
+    <string name="settings_backup_not_a_backup">Ese archivo no es una copia de WarrantyVault.</string>
+    <plurals name="settings_backup_exported">
+        <item quantity="one">Copia guardada con %d garantía.</item>
+        <item quantity="other">Copia guardada con %d garantías.</item>
+    </plurals>
+    <plurals name="settings_backup_pdf_done">
+        <item quantity="one">PDF guardado con %d garantía.</item>
+        <item quantity="other">PDF guardado con %d garantías.</item>
+    </plurals>
+    <plurals name="settings_backup_imported">
+        <item quantity="one">%d garantía importada.</item>
+        <item quantity="other">%d garantías importadas.</item>
+    </plurals>
+    <plurals name="settings_backup_duplicates">
+        <item quantity="one">%d ya estaba y no se ha duplicado.</item>
+        <item quantity="other">%d ya estaban y no se han duplicado.</item>
+    </plurals>
+    <plurals name="settings_backup_archived_limit">
+        <item quantity="one">%d entra archivada porque el plan gratis ya está lleno.</item>
+        <item quantity="other">%d entran archivadas porque el plan gratis ya está lleno.</item>
+    </plurals>
 </resources>

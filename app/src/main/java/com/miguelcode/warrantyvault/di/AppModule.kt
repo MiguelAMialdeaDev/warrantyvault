@@ -5,6 +5,9 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.miguelcode.warrantyvault.BuildConfig
 import com.miguelcode.warrantyvault.analytics.NoOpAnalyticsTracker
+import com.miguelcode.warrantyvault.backup.WarrantyBackupImpl
+import com.miguelcode.warrantyvault.backup.WarrantyPdfExporter
+import com.miguelcode.warrantyvault.domain.backup.WarrantyBackup
 import com.miguelcode.warrantyvault.database.AppDatabase
 import com.miguelcode.warrantyvault.database.MIGRATION_1_2
 import com.miguelcode.warrantyvault.database.datasource.WarrantyLocalDataSource
@@ -77,6 +80,8 @@ val repositoryModule = module {
     // NO cambiar a FirebaseAnalyticsTracker sin leer antes su KDoc: hay que actualizar
     // la política de privacidad y la ficha de Play primero.
     single<AnalyticsTracker> { NoOpAnalyticsTracker() }
+    single { WarrantyPdfExporter(androidContext()) }
+    single<WarrantyBackup> { WarrantyBackupImpl(androidContext(), get(), get(), get(), get()) }
 }
 
 val useCaseModule = module {
@@ -115,7 +120,7 @@ val viewModelModule = module {
     }
     viewModel { OnboardingViewModel(get(), get()) }
     viewModel { PremiumViewModel(get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get()) }
 }
 
 val appModules = listOf(databaseModule, repositoryModule, useCaseModule, viewModelModule)

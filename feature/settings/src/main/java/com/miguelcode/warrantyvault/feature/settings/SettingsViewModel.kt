@@ -3,6 +3,10 @@ package com.miguelcode.warrantyvault.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
+import com.miguelcode.warrantyvault.domain.backup.ImportSummary
+import com.miguelcode.warrantyvault.domain.backup.InvalidBackupException
+import com.miguelcode.warrantyvault.domain.backup.WarrantyBackup
+import com.miguelcode.warrantyvault.domain.model.Result
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import com.miguelcode.warrantyvault.domain.usecase.SyncExpirationAlertsUseCase
 import kotlinx.coroutines.Job
@@ -21,7 +25,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 class SettingsViewModel(
     private val preferencesRepository: PreferencesRepository,
     private val syncExpirationAlerts: SyncExpirationAlertsUseCase,
-    private val billingManager: BillingManagerContract
+    private val billingManager: BillingManagerContract,
+    private val backup: WarrantyBackup
 ) : ViewModel() {
 
     val isPremium: StateFlow<Boolean> = preferencesRepository.isPremiumFlow
@@ -85,6 +90,53 @@ class SettingsViewModel(
     }
 
     enum class RestoreResult { Restored, NothingFound }
+
+    private val _backupBusy = MutableStateFlow(false)
+    /** Hay una copia, importación o PDF en curso: los botones se desactivan. */
+    val backupBusy: StateFlow<Boolean> = _backupBusy.asStateFlow()
+
+    private val _backupResults = Channel<BackupResult>(Channel.BUFFERED)
+    val backupResults: Flow<BackupResult> = _backupResults.receiveAsFlow()
+
+    fun exportBackup(uri: String) = runBackup {
+        when (val r = backup.exportZip(uri)) {
+            is Result.Success -> BackupResult.Exported(r.data)
+            is Result.Error -> BackupResult.Failed
+        }
+    }
+
+    fun importBackup(uri: String) = runBackup {
+        when (val r = backup.importZip(uri)) {
+            is Result.Success -> BackupResult.Imported(r.data)
+            is Result.Error -> if (r.exception is InvalidBackupException) BackupResult.NotABackup
+            else BackupResult.Failed
+        }
+    }
+
+    fun exportPdf(uri: String) = runBackup {
+        when (val r = backup.exportPdf(uri)) {
+            is Result.Success -> BackupResult.PdfExported(r.data)
+            is Result.Error -> BackupResult.Failed
+        }
+    }
+
+    private fun runBackup(block: suspend () -> BackupResult) {
+        if (_backupBusy.value) return
+        _backupBusy.value = true
+        viewModelScope.launch {
+            val result = block()
+            _backupBusy.value = false
+            _backupResults.send(result)
+        }
+    }
+
+    sealed interface BackupResult {
+        data class Exported(val count: Int) : BackupResult
+        data class Imported(val summary: ImportSummary) : BackupResult
+        data class PdfExported(val count: Int) : BackupResult
+        data object NotABackup : BackupResult
+        data object Failed : BackupResult
+    }
 
     internal companion object {
         const val RESTORE_TIMEOUT_MS = 10_000L

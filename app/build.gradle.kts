@@ -115,6 +115,8 @@ dependencies {
 
     // Tests
     testImplementation("junit:junit:4.13.2")
+    // org.json real: el de android.jar en los tests de JVM solo son stubs que lanzan.
+    testImplementation("org.json:json:20240303")
     testImplementation("io.mockk:mockk:1.13.10")
     testImplementation("app.cash.turbine:turbine:1.1.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")

@@ -22,4 +22,25 @@
     <string name="billing_error_product_unavailable">This plan is not available right now. Try again in a few minutes.</string>
     <string name="billing_error_generic">We could not complete the purchase. You have not been charged.</string>
     <string name="billing_purchase_pending">Your payment is awaiting confirmation. Premium will activate as soon as Google Play approves it.</string>
+
+    <!-- Warranty PDF (WarrantyPdfExporter) -->
+    <string name="pdf_title">My warranties</string>
+    <string name="pdf_generated_on">Generated on %1$s with WarrantyVault · %2$d warranties</string>
+    <string name="pdf_col_product">Product</string>
+    <string name="pdf_col_store">Store</string>
+    <string name="pdf_col_purchase">Purchased</string>
+    <string name="pdf_col_end">Ends</string>
+    <string name="pdf_col_status">Status</string>
+    <string name="pdf_col_price">Price</string>
+    <string name="pdf_line_store">Store: %1$s</string>
+    <string name="pdf_line_purchase">Purchase date: %1$s</string>
+    <string name="pdf_line_end">Warranty ends: %1$s (%2$s)</string>
+    <string name="pdf_line_price">Price: %1$s</string>
+    <string name="pdf_line_notes">Notes: %1$s</string>
+    <string name="pdf_status_active">Active</string>
+    <string name="pdf_status_expiring">Expiring soon</string>
+    <string name="pdf_status_expired">Expired</string>
+    <string name="pdf_status_in_claim">In claim</string>
+    <string name="pdf_status_repaired">Repaired</string>
+    <string name="pdf_status_archived">Archived</string>
 </resources>
