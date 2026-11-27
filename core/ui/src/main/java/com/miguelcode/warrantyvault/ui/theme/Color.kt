@@ -22,6 +22,20 @@ val OnSurfaceVariant = Color(0xFF46464F)
 
 val Error = Color(0xFFBA1A1A)
 val OnError = Color(0xFFFFFFFF)
+val ErrorContainer = Color(0xFFFFDAD6)
+val OnErrorContainer = Color(0xFF410002)
+
+// Ámbar para Premium: el morado por defecto de Material no pegaba con nada.
+val Tertiary = Color(0xFF7A5900)
+val OnTertiary = Color(0xFFFFFFFF)
+val TertiaryContainer = Color(0xFFFFDEA6)
+val OnTertiaryContainer = Color(0xFF261900)
+
+val Outline = Color(0xFF777680)
+val OutlineVariant = Color(0xFFC7C5D0)
+val SurfaceContainerLow = Color(0xFFF4F3FA)
+val SurfaceContainer = Color(0xFFEEEDF4)
+val SurfaceContainerHigh = Color(0xFFE8E7EF)
 
 // Dark Theme
 val PrimaryDark = Color(0xFFB4C4FF)
@@ -35,6 +49,28 @@ val SurfaceDark = Color(0xFF1A1B1E)
 val OnSurfaceDark = Color(0xFFE3E2E6)
 val SurfaceVariantDark = Color(0xFF46464F)
 val OnSurfaceVariantDark = Color(0xFFC7C5D0)
+
+val SecondaryDark = Color(0xFFC5C4DD)
+val OnSecondaryDark = Color(0xFF2D2F42)
+val SecondaryContainerDark = Color(0xFF434559)
+val OnSecondaryContainerDark = Color(0xFFE1E0F9)
+
+val TertiaryDark = Color(0xFFF5BF48)
+val OnTertiaryDark = Color(0xFF402D00)
+val TertiaryContainerDark = Color(0xFF5C4300)
+val OnTertiaryContainerDark = Color(0xFFFFDEA6)
+
+// El rojo del tema claro sobre fondo oscuro no llegaba al contraste mínimo.
+val ErrorDark = Color(0xFFFFB4AB)
+val OnErrorDark = Color(0xFF690005)
+val ErrorContainerDark = Color(0xFF93000A)
+val OnErrorContainerDark = Color(0xFFFFDAD6)
+
+val OutlineDark = Color(0xFF918F9A)
+val OutlineVariantDark = Color(0xFF46464F)
+val SurfaceContainerLowDark = Color(0xFF1A1B1E)
+val SurfaceContainerDark = Color(0xFF1F1F23)
+val SurfaceContainerHighDark = Color(0xFF292A2D)
 
 // Status Colors
 val StatusActiveText = Color(0xFF1B6B3A)
