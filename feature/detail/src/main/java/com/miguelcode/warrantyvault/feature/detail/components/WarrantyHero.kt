@@ -74,12 +74,15 @@ fun WarrantyHero(
                     .padding(8.dp)
             )
         } else {
-            val (bg, iconColor, icon) = when (category) {
-                WarrantyCategory.ELECTRONICS -> Triple(CategoryElectronicsBg, CategoryElectronicsIcon, Icons.Outlined.PhoneAndroid)
-                WarrantyCategory.APPLIANCE -> Triple(CategoryApplianceBg, CategoryApplianceIcon, Icons.Outlined.Kitchen)
-                WarrantyCategory.GAMING -> Triple(CategoryGamingBg, CategoryGamingIcon, Icons.Outlined.SportsEsports)
-                WarrantyCategory.CLOTHING -> Triple(CategoryClothingBg, CategoryClothingIcon, Icons.Outlined.Checkroom)
-                WarrantyCategory.OTHER -> Triple(CategoryOtherBg, CategoryOtherIcon, Icons.Outlined.Inventory2)
+            val colors = categoryColors(category)
+            val bg = colors.background
+            val iconColor = colors.icon
+            val icon = when (category) {
+                WarrantyCategory.ELECTRONICS -> Icons.Outlined.PhoneAndroid
+                WarrantyCategory.APPLIANCE -> Icons.Outlined.Kitchen
+                WarrantyCategory.GAMING -> Icons.Outlined.SportsEsports
+                WarrantyCategory.CLOTHING -> Icons.Outlined.Checkroom
+                WarrantyCategory.OTHER -> Icons.Outlined.Inventory2
             }
             Box(
                 modifier = Modifier.matchParentSize().background(bg.copy(alpha = 0.15f)),

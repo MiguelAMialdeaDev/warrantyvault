@@ -48,17 +48,8 @@ import com.miguelcode.warrantyvault.domain.model.WarrantyStatus
 import com.miguelcode.warrantyvault.ui.common.DaysRemainingText
 import com.miguelcode.warrantyvault.ui.common.StatusBadge
 import com.miguelcode.warrantyvault.ui.common.WarrantyProgressBar
-import com.miguelcode.warrantyvault.ui.theme.CategoryApplianceBg
-import com.miguelcode.warrantyvault.ui.theme.CategoryApplianceIcon
-import com.miguelcode.warrantyvault.ui.theme.CategoryClothingBg
-import com.miguelcode.warrantyvault.ui.theme.CategoryClothingIcon
-import com.miguelcode.warrantyvault.ui.theme.CategoryElectronicsBg
-import com.miguelcode.warrantyvault.ui.theme.CategoryElectronicsIcon
-import com.miguelcode.warrantyvault.ui.theme.CategoryGamingBg
-import com.miguelcode.warrantyvault.ui.theme.CategoryGamingIcon
-import com.miguelcode.warrantyvault.ui.theme.CategoryOtherBg
-import com.miguelcode.warrantyvault.ui.theme.CategoryOtherIcon
 import com.miguelcode.warrantyvault.ui.theme.WarrantyVaultTheme
+import com.miguelcode.warrantyvault.ui.theme.categoryColors
 import java.time.LocalDate
 import androidx.compose.ui.res.pluralStringResource
 
@@ -176,36 +167,15 @@ private fun CategoryCircle(
     category: WarrantyCategory,
     modifier: Modifier = Modifier
 ) {
-    val bgColor: Color
-    val iconColor: Color
-    val icon: ImageVector
-
-    when (category) {
-        WarrantyCategory.ELECTRONICS -> {
-            bgColor = CategoryElectronicsBg
-            iconColor = CategoryElectronicsIcon
-            icon = Icons.Outlined.PhoneAndroid
-        }
-        WarrantyCategory.APPLIANCE -> {
-            bgColor = CategoryApplianceBg
-            iconColor = CategoryApplianceIcon
-            icon = Icons.Outlined.Kitchen
-        }
-        WarrantyCategory.GAMING -> {
-            bgColor = CategoryGamingBg
-            iconColor = CategoryGamingIcon
-            icon = Icons.Outlined.SportsEsports
-        }
-        WarrantyCategory.CLOTHING -> {
-            bgColor = CategoryClothingBg
-            iconColor = CategoryClothingIcon
-            icon = Icons.Outlined.Checkroom
-        }
-        WarrantyCategory.OTHER -> {
-            bgColor = CategoryOtherBg
-            iconColor = CategoryOtherIcon
-            icon = Icons.Outlined.Inventory2
-        }
+    val colors = categoryColors(category)
+    val bgColor = colors.background
+    val iconColor = colors.icon
+    val icon: ImageVector = when (category) {
+        WarrantyCategory.ELECTRONICS -> Icons.Outlined.PhoneAndroid
+        WarrantyCategory.APPLIANCE -> Icons.Outlined.Kitchen
+        WarrantyCategory.GAMING -> Icons.Outlined.SportsEsports
+        WarrantyCategory.CLOTHING -> Icons.Outlined.Checkroom
+        WarrantyCategory.OTHER -> Icons.Outlined.Inventory2
     }
 
     Box(

@@ -99,3 +99,11 @@ val CategoryClothingBg = Color(0xFFFFF8E1)
 val CategoryClothingIcon = Color(0xFFF57F17)
 val CategoryOtherBg = Color(0xFFEFEBE9)
 val CategoryOtherIcon = Color(0xFF4E342E)
+
+// En oscuro, los fondos pastel del tema claro brillaban sobre la superficie oscura:
+// fondo tonal del propio color del icono y el icono en un tono claro.
+val CategoryElectronicsIconDark = Color(0xFF90CAF9)
+val CategoryApplianceIconDark = Color(0xFFCE93D8)
+val CategoryGamingIconDark = Color(0xFFA5D6A7)
+val CategoryClothingIconDark = Color(0xFFFFE082)
+val CategoryOtherIconDark = Color(0xFFBCAAA4)
