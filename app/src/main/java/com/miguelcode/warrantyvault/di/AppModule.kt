@@ -30,6 +30,7 @@ import com.miguelcode.warrantyvault.domain.notification.NotificationScheduler
 import com.miguelcode.warrantyvault.domain.storage.PhotoFileCleaner
 import com.miguelcode.warrantyvault.notifications.DeliveredAlertsStore
 import com.miguelcode.warrantyvault.notifications.NotificationSchedulerImpl
+import com.miguelcode.warrantyvault.review.ReviewPrompter
 import com.miguelcode.warrantyvault.storage.OrphanPhotoSweeper
 import com.miguelcode.warrantyvault.storage.PhotoFileCleanerImpl
 import com.miguelcode.warrantyvault.feature.addedit.AddEditViewModel
@@ -83,6 +84,7 @@ val repositoryModule = module {
     // la política de privacidad y la ficha de Play primero.
     single<AnalyticsTracker> { NoOpAnalyticsTracker() }
     single<ReceiptTextReader> { MlKitReceiptTextReader(androidContext()) }
+    single { ReviewPrompter(androidContext()) }
     single { WarrantyPdfExporter(androidContext()) }
     single<WarrantyBackup> { WarrantyBackupImpl(androidContext(), get(), get(), get(), get()) }
 }

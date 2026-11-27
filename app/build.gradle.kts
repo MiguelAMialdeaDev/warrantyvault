@@ -112,6 +112,7 @@ dependencies {
     // Artefacto Java y no -ktx: no usamos sus extensiones y el -ktx 8 viene compilado
     // con una versión de Kotlin más nueva que la del proyecto.
     implementation("com.android.billingclient:billing:8.0.0")
+    implementation("com.google.android.play:review-ktx:2.0.2")
 
     // Tests
     testImplementation("junit:junit:4.13.2")

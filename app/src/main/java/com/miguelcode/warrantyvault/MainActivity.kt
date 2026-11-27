@@ -29,6 +29,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
+import com.miguelcode.warrantyvault.domain.repository.WarrantyRepository
+import com.miguelcode.warrantyvault.review.ReviewPrompter
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import com.miguelcode.warrantyvault.domain.usecase.SyncExpirationAlertsUseCase
 import com.miguelcode.warrantyvault.navigation.AppNavGraph
 import com.miguelcode.warrantyvault.navigation.Screen
@@ -42,6 +46,8 @@ class MainActivity : ComponentActivity() {
     private val preferencesRepository: PreferencesRepository by inject()
     private val billingManager: BillingManagerContract by inject()
     private val syncExpirationAlerts: SyncExpirationAlertsUseCase by inject()
+    private val warrantyRepository: WarrantyRepository by inject()
+    private val reviewPrompter: ReviewPrompter by inject()
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -133,6 +139,20 @@ class MainActivity : ComponentActivity() {
                             permissionAsked = true
                             requestNotificationPermissionIfNeeded()
                         }
+                    }
+                    // Valoración tras guardar una garantía (y tener al menos dos): es cuando la
+                    // app acaba de ser útil. El primer valor solo fija la referencia.
+                    LaunchedEffect(Unit) {
+                        var previous: Int? = null
+                        warrantyRepository.getAllWarranties()
+                            .map { it.size }
+                            .distinctUntilChanged()
+                            .collect { count ->
+                                if (ReviewPrompter.isSuccessMoment(previous, count)) {
+                                    reviewPrompter.maybeAsk(this@MainActivity)
+                                }
+                                previous = count
+                            }
                     }
                     val navController = rememberNavController()
                     AppNavGraph(navController = navController, onboardingDone = onboardingDone!!)
