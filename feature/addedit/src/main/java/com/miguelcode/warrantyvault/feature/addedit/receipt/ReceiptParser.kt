@@ -18,7 +18,8 @@ data class ReceiptGuess(
  */
 object ReceiptParser {
 
-    private val dateRegex = Regex("""\b(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2}|\d{4})\b""")
+    // El OCR mete a veces espacios junto a las barras ("14/03/ 2026").
+    private val dateRegex = Regex("""\b(\d{1,2})\s?[/.\-]\s?(\d{1,2})\s?[/.\-]\s?(\d{2}|\d{4})\b""")
     private val amountRegex = Regex("""(?<![\d.,])(\d{1,3}(?:[.\s]\d{3})*|\d+)[.,](\d{2})(?!\d)""")
     private val totalKeywords = listOf("TOTAL A PAGAR", "IMPORTE TOTAL", "TOTAL EUR", "TOTAL €", "TOTAL", "A PAGAR", "IMPORTE")
     private val notTotal = listOf("SUBTOTAL", "SUB TOTAL", "BASE", "IVA", "CAMBIO", "ENTREGADO", "DESCUENTO", "AHORRO")

@@ -45,6 +45,14 @@ class ReceiptParserTest {
     }
 
     @Test
+    fun `reads a date with the spaces the OCR adds around the slashes`() {
+        // Texto real de ML Kit sobre un ticket de prueba.
+        val lines = listOf("MEDIA MARKT VALENCIA", "Fecha: 14/03/ 2026 18:22", "TOTAL 599,00", "ENTREGADO 600,0e")
+
+        assertEquals(LocalDate.of(2026, 3, 14), ReceiptParser.parse(lines, today).purchaseDate)
+    }
+
+    @Test
     fun `ignores future and impossible dates`() {
         assertNull(ReceiptParser.parse(listOf("31/02/2026", "01/01/2030"), today).purchaseDate)
     }
