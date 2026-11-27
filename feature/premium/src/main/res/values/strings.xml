@@ -6,24 +6,23 @@
 
     <!--
       La tabla solo puede listar lo que la app hace HOY. Cobrar por una función que no
-      existe es motivo de rechazo en Play y de reembolso. Lo que está en camino va en la
-      sección de roadmap de abajo, fuera de la comparativa de pago.
-      Ahora mismo el único gate real es CheckPremiumLimitUseCase (3 garantías gratis).
+      existe es motivo de rechazo en Play y de reembolso.
+      Lo que es solo Premium: más de 3 garantías en uso (CheckPremiumLimitUseCase),
+      rellenar desde el ticket (AddEditViewModel.applyReceiptGuess) y el PDF (Ajustes).
     -->
     <string name="premium_column_free">Gratis</string>
     <string name="premium_column_premium">Premium</string>
-    <string name="premium_feature_warranties">Garantías</string>
+    <string name="premium_feature_warranties">Garantías en uso</string>
     <string name="premium_free_limit">3</string>
     <string name="premium_unlimited">Ilimitadas</string>
     <string name="premium_feature_notifications">Avisos de vencimiento</string>
     <string name="premium_notifications_detail">30, 14, 7 y 1 día antes</string>
-    <string name="premium_feature_photo">Foto del ticket</string>
+    <string name="premium_feature_photo">Escanear y guardar el ticket</string>
     <string name="premium_included">Sí</string>
-
-    <string name="premium_roadmap_title">En camino</string>
-    <string name="premium_roadmap_pdf">Exportar tus garantías a PDF</string>
-    <string name="premium_roadmap_backup">Copia de seguridad en la nube</string>
-    <string name="premium_roadmap_note">Todavía no están disponibles. No pagas por ellas: se incluirán en Premium cuando estén listas.</string>
+    <string name="premium_not_included">No</string>
+    <string name="premium_feature_backup">Copia con fotos y archivo</string>
+    <string name="premium_feature_autofill">Rellenar desde el ticket</string>
+    <string name="premium_feature_pdf">PDF para reclamar</string>
 
     <string name="premium_monthly">Mensual</string>
     <string name="premium_monthly_period">/mes</string>

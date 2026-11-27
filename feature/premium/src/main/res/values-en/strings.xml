@@ -6,18 +6,17 @@
 
     <string name="premium_column_free">Free</string>
     <string name="premium_column_premium">Premium</string>
-    <string name="premium_feature_warranties">Warranties</string>
+    <string name="premium_feature_warranties">Warranties in use</string>
     <string name="premium_free_limit">3</string>
     <string name="premium_unlimited">Unlimited</string>
     <string name="premium_feature_notifications">Expiry alerts</string>
     <string name="premium_notifications_detail">30, 14, 7 and 1 day before</string>
-    <string name="premium_feature_photo">Receipt photo</string>
+    <string name="premium_feature_photo">Scan and keep the receipt</string>
     <string name="premium_included">Yes</string>
-
-    <string name="premium_roadmap_title">Coming soon</string>
-    <string name="premium_roadmap_pdf">Export your warranties to PDF</string>
-    <string name="premium_roadmap_backup">Cloud backup</string>
-    <string name="premium_roadmap_note">Not available yet. You are not paying for these: they will be included in Premium once they ship.</string>
+    <string name="premium_not_included">No</string>
+    <string name="premium_feature_backup">Backup with photos, archive</string>
+    <string name="premium_feature_autofill">Fill in from the receipt</string>
+    <string name="premium_feature_pdf">PDF for claims</string>
 
     <string name="premium_monthly">Monthly</string>
     <string name="premium_monthly_period">/month</string>

@@ -114,8 +114,8 @@ fun PremiumScreen(
             Text(stringResource(R.string.premium_compare), style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center)
             Spacer(Modifier.height(24.dp))
 
-            // La comparativa lista únicamente lo que la app hace hoy. Lo que está a medias
-            // vive en la sección "En camino", fuera de lo que se paga.
+            // La comparativa lista únicamente lo que la app hace hoy: cobrar por algo que no
+            // existe es motivo de rechazo en Play y de reembolsos.
             ComparisonHeader()
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
             ComparisonRow(
@@ -131,6 +131,21 @@ fun PremiumScreen(
             ComparisonRow(
                 feature = stringResource(R.string.premium_feature_photo),
                 free = stringResource(R.string.premium_included),
+                premium = stringResource(R.string.premium_included)
+            )
+            ComparisonRow(
+                feature = stringResource(R.string.premium_feature_backup),
+                free = stringResource(R.string.premium_included),
+                premium = stringResource(R.string.premium_included)
+            )
+            ComparisonRow(
+                feature = stringResource(R.string.premium_feature_autofill),
+                free = stringResource(R.string.premium_not_included),
+                premium = stringResource(R.string.premium_included)
+            )
+            ComparisonRow(
+                feature = stringResource(R.string.premium_feature_pdf),
+                free = stringResource(R.string.premium_not_included),
                 premium = stringResource(R.string.premium_included)
             )
 
@@ -236,8 +251,6 @@ fun PremiumScreen(
                 Text(stringResource(UiR.string.privacy_policy_label))
             }
 
-            Spacer(Modifier.height(32.dp))
-            RoadmapSection()
         }
     }
 }
@@ -275,39 +288,6 @@ private fun ComparisonRow(feature: String, free: String, premium: String) {
         Text(feature, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
         Text(free, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), modifier = Modifier.weight(0.8f), textAlign = TextAlign.Center)
         Text(premium, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(0.8f), textAlign = TextAlign.Center)
-    }
-}
-
-@Composable
-private fun RoadmapSection() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                stringResource(R.string.premium_roadmap_title),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.premium_roadmap_pdf),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-            Text(
-                stringResource(R.string.premium_roadmap_backup),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.premium_roadmap_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
-        }
     }
 }
 
