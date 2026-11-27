@@ -7,6 +7,7 @@ import com.miguelcode.warrantyvault.domain.analytics.AnalyticsEvents
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsTracker
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.billing.SubscriptionPrice
+import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -14,8 +15,17 @@ import kotlinx.coroutines.flow.stateIn
 
 class PremiumViewModel(
     private val billingManager: BillingManagerContract,
-    private val analytics: AnalyticsTracker
+    private val analytics: AnalyticsTracker,
+    preferencesRepository: PreferencesRepository
 ) : ViewModel() {
+
+    /**
+     * Derecho real a Premium (suscripción verificada), no el resultado de la última
+     * compra. Con stateCode, quien ya pagaba veía el botón de compra activo al volver a
+     * esta pantalla en otra sesión y podía contratar un segundo plan.
+     */
+    val isPremium: StateFlow<Boolean> = preferencesRepository.isPremiumFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     val stateCode: StateFlow<Int> = billingManager.stateCode
     val errorMessage: StateFlow<String?> = billingManager.errorMessage

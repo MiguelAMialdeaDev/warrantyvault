@@ -39,6 +39,7 @@
     <string name="premium_cta">Empezar con Premium</string>
     <string name="premium_cta_loading">Cargando planes…</string>
     <string name="premium_cta_unavailable">Planes no disponibles ahora mismo</string>
+    <string name="premium_unavailable_hint">No se puede conectar con Google Play. Comprueba que has iniciado sesión en Play Store y vuelve a abrir esta pantalla.</string>
     <string name="premium_cta_purchased">Premium activado</string>
     <!--
       Aviso de renovación que pide la política de suscripciones de Play: precio, periodo,

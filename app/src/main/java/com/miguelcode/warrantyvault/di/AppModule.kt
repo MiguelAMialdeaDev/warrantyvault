@@ -109,7 +109,7 @@ val viewModelModule = module {
         )
     }
     viewModel { OnboardingViewModel(get(), get()) }
-    viewModel { PremiumViewModel(get(), get()) }
+    viewModel { PremiumViewModel(get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get()) }
 }
 

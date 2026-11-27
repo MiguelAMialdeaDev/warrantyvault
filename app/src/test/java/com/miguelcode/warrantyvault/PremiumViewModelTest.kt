@@ -6,6 +6,7 @@ import com.miguelcode.warrantyvault.domain.analytics.AnalyticsEvents
 import com.miguelcode.warrantyvault.domain.analytics.AnalyticsTracker
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.billing.SubscriptionPrice
+import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import com.miguelcode.warrantyvault.feature.premium.PremiumViewModel
 import io.mockk.every
 import io.mockk.just
@@ -32,17 +33,34 @@ class PremiumViewModelTest {
     private val stateCode = MutableStateFlow(BillingManagerContract.STATE_IDLE)
     private val errorMessage = MutableStateFlow<String?>(null)
     private val prices = MutableStateFlow<Map<String, SubscriptionPrice>>(emptyMap())
+    private val isPremium = MutableStateFlow(false)
+    private val preferencesRepository: PreferencesRepository = mockk {
+        every { isPremiumFlow } returns isPremium
+    }
 
     private fun createViewModel(): PremiumViewModel {
         every { billingManager.stateCode } returns stateCode
         every { billingManager.errorMessage } returns errorMessage
         every { billingManager.prices } returns prices
         every { billingManager.connect() } just runs
-        return PremiumViewModel(billingManager, analytics)
+        return PremiumViewModel(billingManager, analytics, preferencesRepository)
     }
 
     private fun price(amountMicros: Long, formatted: String) =
         SubscriptionPrice(formatted = formatted, amountMicros = amountMicros)
+
+    @Test
+    fun `a premium user is recognised even when the billing state is idle`() = runTest {
+        // En otra sesión stateCode vuelve a IDLE aunque la suscripción siga activa: la
+        // pantalla tiene que leer el derecho real para no ofrecer un segundo plan.
+        isPremium.value = true
+        val vm = createViewModel()
+
+        vm.isPremium.test {
+            assertEquals(true, expectMostRecentItem())
+        }
+        assertEquals(BillingManagerContract.STATE_IDLE, vm.stateCode.value)
+    }
 
     @Test
     fun `connects to billing on init`() {

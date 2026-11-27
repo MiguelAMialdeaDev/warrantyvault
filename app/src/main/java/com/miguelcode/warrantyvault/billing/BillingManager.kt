@@ -119,6 +119,12 @@ class BillingManager(
                     }
                 } else {
                     // Dispositivo sin Play Services, país no soportado, servicio caído…
+                    // Sin cuenta de Google en Play, BILLING_UNAVAILABLE no se arregla
+                    // reintentando: la pantalla Premium se quedaba en "Cargando planes"
+                    // para siempre. Se avisa ya y se sigue reintentando por si acaso.
+                    if (result.responseCode == BillingClient.BillingResponseCode.BILLING_UNAVAILABLE) {
+                        _plansUnavailable.value = true
+                    }
                     scheduleReconnect()
                 }
             }
@@ -136,7 +142,11 @@ class BillingManager(
      * era un bucle cerrado que se comía la batería sin llegar a conectar nunca.
      */
     private fun scheduleReconnect() {
-        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) return
+        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            // Sin conexión tras todos los intentos: que la pantalla deje de esperar.
+            if (_prices.value.isEmpty()) _plansUnavailable.value = true
+            return
+        }
         val delayMs = RECONNECT_BASE_DELAY_MS shl reconnectAttempts
         reconnectAttempts++
         scope.launch {
@@ -213,6 +223,8 @@ class BillingManager(
             productQueryAttempts++
             delay(delayMs)
             queryProducts()
+        } else if (_prices.value.isEmpty()) {
+            _plansUnavailable.value = true
         }
     }
 

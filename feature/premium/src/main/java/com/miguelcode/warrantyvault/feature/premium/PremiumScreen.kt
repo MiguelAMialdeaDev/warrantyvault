@@ -67,6 +67,8 @@ fun PremiumScreen(
     val plansUnavailable by viewModel.plansUnavailable.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val annualSavings by viewModel.annualSavingsPercent.collectAsStateWithLifecycle()
+    val isPremium by viewModel.isPremium.collectAsStateWithLifecycle()
+    val alreadyPremium = isPremium || billingState == BillingManagerContract.STATE_PURCHASED
 
     // LocalContext.current devuelve un ContextWrapper (tema, ViewModelStore…), no
     // necesariamente la Activity. Recorremos la cadena hasta encontrarla, porque
@@ -175,8 +177,8 @@ fun PremiumScreen(
                 shape = RoundedCornerShape(16.dp),
                 enabled = activity != null &&
                         plansReady &&
-                        billingState != BillingManagerContract.STATE_LOADING &&
-                        billingState != BillingManagerContract.STATE_PURCHASED
+                        !alreadyPremium &&
+                        billingState != BillingManagerContract.STATE_LOADING
             ) {
                 when {
                     billingState == BillingManagerContract.STATE_LOADING -> CircularProgressIndicator(
@@ -184,8 +186,7 @@ fun PremiumScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
-                    billingState == BillingManagerContract.STATE_PURCHASED ->
-                        Text(stringResource(R.string.premium_cta_purchased))
+                    alreadyPremium -> Text(stringResource(R.string.premium_cta_purchased))
                     !plansReady && plansUnavailable -> Text(stringResource(R.string.premium_cta_unavailable))
                     !plansReady -> Text(stringResource(R.string.premium_cta_loading))
                     else -> Text(stringResource(R.string.premium_cta))
@@ -194,7 +195,7 @@ fun PremiumScreen(
 
             Spacer(Modifier.height(8.dp))
             val uriHandler = LocalUriHandler.current
-            if (billingState == BillingManagerContract.STATE_PURCHASED) {
+            if (alreadyPremium) {
                 // Quien ya paga necesita una salida clara para cambiar de plan o cancelar.
                 // Play exige que sea fácil, y sin enlace había que buscarlo en Play Store.
                 val packageName = LocalContext.current.packageName
@@ -213,6 +214,15 @@ fun PremiumScreen(
                     selectedPrice == null -> stringResource(R.string.premium_renewal_disclosure_generic)
                     selectedPlan == PLAN_MONTHLY -> stringResource(R.string.premium_renewal_disclosure_monthly, selectedPrice)
                     else -> stringResource(R.string.premium_renewal_disclosure_yearly, selectedPrice)
+                }
+                if (!plansReady && plansUnavailable) {
+                    Text(
+                        stringResource(R.string.premium_unavailable_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                 }
                 Text(
                     disclosure,
