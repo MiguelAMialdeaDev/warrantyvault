@@ -48,6 +48,7 @@ class SettingsViewModelTest {
         every { preferencesRepository.themeModeFlow } returns flowOf(themeMode)
         every { preferencesRepository.notificationsEnabledFlow } returns
             flowOf(notificationsEnabled)
+        every { preferencesRepository.crashReportsEnabledFlow } returns flowOf(true)
     }
 
     private fun createViewModel() =

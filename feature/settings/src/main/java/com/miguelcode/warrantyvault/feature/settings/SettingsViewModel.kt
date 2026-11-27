@@ -38,6 +38,13 @@ class SettingsViewModel(
     val notificationsEnabled: StateFlow<Boolean> = preferencesRepository.notificationsEnabledFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val crashReportsEnabled: StateFlow<Boolean> = preferencesRepository.crashReportsEnabledFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setCrashReportsEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setCrashReportsEnabled(enabled) }
+    }
+
     private val _restoring = MutableStateFlow(false)
     val restoring: StateFlow<Boolean> = _restoring.asStateFlow()
 

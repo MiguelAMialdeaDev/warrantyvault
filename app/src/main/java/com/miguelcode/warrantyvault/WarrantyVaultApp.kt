@@ -1,6 +1,8 @@
 package com.miguelcode.warrantyvault
 
 import android.app.Application
+import com.miguelcode.warrantyvault.crash.CrashReporting
+import com.miguelcode.warrantyvault.domain.repository.PreferencesRepository
 import com.miguelcode.warrantyvault.di.appModules
 import com.miguelcode.warrantyvault.domain.billing.BillingManagerContract
 import com.miguelcode.warrantyvault.domain.notification.NotificationScheduler
@@ -41,6 +43,14 @@ class WarrantyVaultApp : Application() {
         // que repetirlo en cada arranque no duplica nada.
         val syncAlerts = get<SyncExpirationAlertsUseCase>()
         val warrantyRepository = get<WarrantyRepository>()
+        // Aplica la preferencia de informes de fallos ahora y cada vez que cambie.
+        val preferences = get<PreferencesRepository>()
+        CoroutineScope(SupervisorJob() + Dispatchers.Main).launch {
+            preferences.crashReportsEnabledFlow.collect { enabled ->
+                runCatching { CrashReporting.setEnabled(this@WarrantyVaultApp, enabled) }
+            }
+        }
+
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             // Sin runCatching, cualquier fallo al leer la base de datos llegaba como
             // excepción no capturada y cerraba la app en CADA arranque, sin salida. Los

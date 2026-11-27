@@ -27,6 +27,8 @@
     <string name="settings_permission_denied">Permiso denegado. Actívalo desde Ajustes para recibir avisos.</string>
     <string name="settings_open_settings">Abrir Ajustes</string>
 
+    <string name="settings_crash_reports">Enviar informes de fallos</string>
+    <string name="settings_crash_reports_hint">Si la app se cierra sola, nos llega un informe técnico anónimo, sin datos de tus garantías.</string>
     <string name="settings_backup_section">Copia de seguridad</string>
     <string name="settings_backup_export">Exportar copia (con fotos)</string>
     <string name="settings_backup_import">Importar copia</string>

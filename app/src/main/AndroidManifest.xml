@@ -22,6 +22,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.WarrantyVault">
+        <!-- Crashlytics no envía nada hasta que la app lo enciende según la preferencia de Ajustes. -->
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
         <!--
           taskAffinity vacía: en Android 8 a 10 otra app podía declarar la misma afinidad y
           colarse en nuestra tarea (StrandHogg), haciéndose pasar por la app al pulsar el

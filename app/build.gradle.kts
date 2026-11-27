@@ -3,6 +3,14 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Crashlytics necesita el google-services.json del proyecto de Firebase, que no va en el
+// repo (.gitignore). Sin él la app compila igual y simplemente no envía informes.
+val hasFirebaseConfig = file("google-services.json").exists()
+if (hasFirebaseConfig) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+}
+
 // Clave pública de licencias de Play (Play Console > Monetizar > Configuración de
 // monetización > Licencias). No es secreta, pero va en ~/.gradle/gradle.properties junto
 // al resto de datos de publicación. Sin ella, PurchaseVerifier rechaza todas las compras.
@@ -113,6 +121,9 @@ dependencies {
     // con una versión de Kotlin más nueva que la del proyecto.
     implementation("com.android.billingclient:billing:8.0.0")
     implementation("com.google.android.play:review-ktx:2.0.2")
+    // Solo Crashlytics, sin Analytics: informes de fallos y nada más.
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-crashlytics")
 
     // Tests
     testImplementation("junit:junit:4.13.2")

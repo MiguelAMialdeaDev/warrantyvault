@@ -26,6 +26,8 @@
     <string name="settings_permission_denied">Permission denied. Turn it on in Settings to get reminders.</string>
     <string name="settings_open_settings">Open Settings</string>
 
+    <string name="settings_crash_reports">Send crash reports</string>
+    <string name="settings_crash_reports_hint">If the app crashes, we get an anonymous technical report with none of your warranty data.</string>
     <string name="settings_backup_section">Backup</string>
     <string name="settings_backup_export">Export backup (with photos)</string>
     <string name="settings_backup_import">Import backup</string>

@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.DarkMode
@@ -84,6 +85,7 @@ fun SettingsScreen(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
 
     val restoring by viewModel.restoring.collectAsStateWithLifecycle()
+    val crashReportsEnabled by viewModel.crashReportsEnabled.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -414,6 +416,31 @@ fun SettingsScreen(
                             enabled = !restoring,
                             onClick = viewModel::restorePurchases
                         )
+                    }
+                    // Informes de fallos: anónimos, sin datos de las garantías. Se pueden apagar.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = crashReportsEnabled,
+                                onValueChange = viewModel::setCrashReportsEnabled,
+                                role = Role.Switch
+                            )
+                            .heightIn(min = 56.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Outlined.BugReport, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_crash_reports), style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                stringResource(R.string.settings_crash_reports_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(checked = crashReportsEnabled, onCheckedChange = null)
                     }
                     SettingsLinkRow(
                         icon = Icons.Outlined.Policy,

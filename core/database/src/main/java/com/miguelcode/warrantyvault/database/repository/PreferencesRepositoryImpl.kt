@@ -139,11 +139,19 @@ class PreferencesRepositoryImpl(
         context.dataStore.edit { it[KEY_NOTIFICATIONS_ENABLED] = enabled }
     }
 
+    override val crashReportsEnabledFlow: Flow<Boolean>
+        get() = safeData.map { it[KEY_CRASH_REPORTS] ?: true }
+
+    override suspend fun setCrashReportsEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_CRASH_REPORTS] = enabled }
+    }
+
     companion object {
         private val KEY_IS_PREMIUM = booleanPreferencesKey("is_premium")
         private val KEY_PREMIUM_VERIFIED_AT = longPreferencesKey("premium_verified_at")
         private val KEY_ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
         private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         private val KEY_NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        private val KEY_CRASH_REPORTS = booleanPreferencesKey("crash_reports_enabled")
     }
 }
