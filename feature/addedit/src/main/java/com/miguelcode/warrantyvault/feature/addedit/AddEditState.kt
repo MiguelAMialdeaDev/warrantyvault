@@ -47,7 +47,9 @@ data class AddEditState(
     val error: String? = null,
     /** Error de formulario localizable (ej. límite premium alcanzado). */
     val formError: AddEditError? = null,
-    val canAdd: Boolean = true
+    val canAdd: Boolean = true,
+    /** El usuario ha tocado algo: salir sin guardar pide confirmación. */
+    val hasChanges: Boolean = false
 ) {
     val isFormValid: Boolean
         get() = productName.isNotBlank() &&

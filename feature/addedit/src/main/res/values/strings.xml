@@ -21,6 +21,10 @@
     </plurals>
     <string name="addedit_duration_legal_hint">En España, lo que compras nuevo tiene 3 años de garantía legal.</string>
     <string name="addedit_save_button">Guardar garantía</string>
+    <string name="addedit_discard_title">¿Descartar los cambios?</string>
+    <string name="addedit_discard_body">Lo que has escrito en esta garantía no se guardará.</string>
+    <string name="addedit_discard_confirm">Descartar</string>
+    <string name="addedit_discard_keep">Seguir editando</string>
 
     <string name="addedit_end_date_label">Fin de garantía: %1$s</string>
 

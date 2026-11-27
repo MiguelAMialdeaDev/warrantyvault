@@ -261,6 +261,28 @@ class AddEditViewModelTest {
     }
 
     @Test
+    fun `the form has no changes until the user edits a field`() = runTest {
+        coEvery { checkPremiumLimitUseCase() } returns true
+        val vm = createViewModel()
+        assertFalse(vm.state.value.hasChanges)
+
+        vm.onStoreChanged("Fnac")
+
+        assertTrue(vm.state.value.hasChanges)
+    }
+
+    @Test
+    fun `loading a warranty to edit is not a change`() = runTest {
+        coEvery { getWarrantyByIdUseCase(5L) } returns Result.Success(
+            warrantyEndingOn(LocalDate.of(2024, 1, 15), LocalDate.of(2026, 1, 15))
+        )
+
+        val vm = createViewModel(warrantyId = 5L)
+
+        assertFalse(vm.state.value.hasChanges)
+    }
+
+    @Test
     fun `quick duration chips set whole years`() = runTest {
         coEvery { checkPremiumLimitUseCase() } returns true
         val vm = createViewModel()

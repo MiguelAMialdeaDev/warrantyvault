@@ -65,6 +65,11 @@ class AddEditViewModel(
         }
     }
 
+    /** Cambio hecho por el usuario: a partir de aquí salir sin guardar pide confirmación. */
+    private fun edit(transform: (AddEditState) -> AddEditState) {
+        updateState { transform(it).copy(hasChanges = true) }
+    }
+
     /** Único punto de escritura del estado: cada cambio se respalda en el handle. */
     private fun updateState(transform: (AddEditState) -> AddEditState) {
         saveDraft(_state.updateAndGet(transform))
@@ -126,7 +131,7 @@ class AddEditViewModel(
 
     /** Atajo de los chips de duración: fija la cantidad en años de una vez. */
     fun onQuickDurationSelected(years: Int) {
-        updateState { it.copy(warrantyMonths = years.toString(), isYears = true) }
+        edit { it.copy(warrantyMonths = years.toString(), isYears = true) }
         validateAndRecalculate()
     }
 
@@ -143,15 +148,15 @@ class AddEditViewModel(
         val capped = if (name.length > MAX_PRODUCT_NAME_LENGTH) {
             name.take(MAX_PRODUCT_NAME_LENGTH)
         } else name
-        updateState { it.copy(productName = capped, productNameError = null) }
+        edit { it.copy(productName = capped, productNameError = null) }
     }
 
     fun onCategoryChanged(category: WarrantyCategory) {
-        updateState { it.copy(category = category) }
+        edit { it.copy(category = category) }
     }
 
     fun onStoreChanged(store: String) {
-        updateState { it.copy(store = store.take(MAX_STORE_LENGTH)) }
+        edit { it.copy(store = store.take(MAX_STORE_LENGTH)) }
     }
 
     /**
@@ -160,28 +165,28 @@ class AddEditViewModel(
      */
     fun onPriceChanged(price: String) {
         val cleaned = price.filter { it.isDigit() || it == ',' || it == '.' }.take(MAX_PRICE_LENGTH)
-        updateState { it.copy(price = cleaned) }
+        edit { it.copy(price = cleaned) }
     }
 
     fun onPurchaseDateChanged(date: LocalDate) {
-        updateState { it.copy(purchaseDate = date, purchaseDateError = null) }
+        edit { it.copy(purchaseDate = date, purchaseDateError = null) }
         validateAndRecalculate()
     }
 
     fun onWarrantyMonthsChanged(months: String) {
         // Limita la longitud antes de procesar para evitar overflow de Long.
         val trimmed = months.take(MAX_INPUT_DIGITS).filter { it.isDigit() }
-        updateState { it.copy(warrantyMonths = trimmed) }
+        edit { it.copy(warrantyMonths = trimmed) }
         validateAndRecalculate()
     }
 
     fun onIsYearsChanged(isYears: Boolean) {
-        updateState { it.copy(isYears = isYears) }
+        edit { it.copy(isYears = isYears) }
         validateAndRecalculate()
     }
 
     fun onPhotoChanged(path: String?) {
-        updateState { it.copy(receiptPhotoPath = path) }
+        edit { it.copy(receiptPhotoPath = path) }
     }
 
     /**
@@ -199,7 +204,11 @@ class AddEditViewModel(
             val path = withContext(ioDispatcher) { copyToInternal(uri) }
             updateState {
                 // Una copia fallida deja la foto anterior, no la borra.
-                it.copy(isPhotoLoading = false, receiptPhotoPath = path ?: it.receiptPhotoPath)
+                it.copy(
+                    isPhotoLoading = false,
+                    receiptPhotoPath = path ?: it.receiptPhotoPath,
+                    hasChanges = it.hasChanges || path != null
+                )
             }
         }
     }
@@ -209,7 +218,7 @@ class AddEditViewModel(
      * (el sistema lo limita a ~1 MB por proceso) y podían no caber al leer la fila.
      */
     fun onNotesChanged(notes: String) {
-        updateState { it.copy(notes = notes.take(MAX_NOTES_LENGTH)) }
+        edit { it.copy(notes = notes.take(MAX_NOTES_LENGTH)) }
     }
 
     private fun validateAndRecalculate() {
@@ -344,6 +353,7 @@ class AddEditViewModel(
         handle[KEY_PHOTO] = state.receiptPhotoPath
         handle[KEY_NOTES] = state.notes
         handle[KEY_CREATED_AT] = state.createdAt?.toString()
+        handle[KEY_HAS_CHANGES] = state.hasChanges
     }
 
     private fun restoreDraft(): AddEditState? {
@@ -365,7 +375,8 @@ class AddEditViewModel(
             receiptPhotoPath = handle.get<String>(KEY_PHOTO),
             notes = handle.get<String>(KEY_NOTES).orEmpty().take(MAX_NOTES_LENGTH),
             createdAt = handle.get<String>(KEY_CREATED_AT)
-                ?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
+                ?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() },
+            hasChanges = handle.get<Boolean>(KEY_HAS_CHANGES) ?: false
         )
     }
 
@@ -395,5 +406,6 @@ class AddEditViewModel(
         private const val KEY_PHOTO = "draft_photo"
         private const val KEY_NOTES = "draft_notes"
         private const val KEY_CREATED_AT = "draft_created_at"
+        private const val KEY_HAS_CHANGES = "draft_has_changes"
     }
 }

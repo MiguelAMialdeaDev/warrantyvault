@@ -38,7 +38,10 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -163,6 +166,32 @@ fun AddEditScreen(
         )
     }
 
+    // Salir con cambios sin guardar (atrás o la X) pregunta antes. Antes se perdía todo
+    // lo escrito sin aviso, también con un gesto de atrás accidental.
+    var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
+    val requestClose: () -> Unit = {
+        if (state.hasChanges && !state.isSaved) showDiscardDialog = true else onNavigateBack()
+    }
+    BackHandler(enabled = state.hasChanges && !state.isSaved) { showDiscardDialog = true }
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.addedit_discard_title)) },
+            text = { Text(stringResource(R.string.addedit_discard_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    onNavigateBack()
+                }) { Text(stringResource(R.string.addedit_discard_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.addedit_discard_keep))
+                }
+            }
+        )
+    }
+
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onNavigateBack()
     }
@@ -205,7 +234,7 @@ fun AddEditScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = requestClose) {
                         Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.addedit_nav_close))
                     }
                 },
