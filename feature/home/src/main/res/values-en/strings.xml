@@ -16,6 +16,9 @@
     <string name="home_empty_title">No warranties yet</string>
     <string name="home_empty_subtitle">Add your first product to start protecting your purchases</string>
     <string name="home_empty_action">Add warranty</string>
+    <string name="home_error_title">Your warranties could not be loaded</string>
+    <string name="home_error_subtitle">Your data is still stored on the phone. Please try again.</string>
+    <string name="home_error_retry">Retry</string>
     <string name="home_no_results_title">No results</string>
     <string name="home_no_results_subtitle">No warranties match this filter</string>
 

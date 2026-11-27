@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -94,6 +95,22 @@ class HomeViewModelTest {
             assertEquals(2, state.warranties.size)
             assertEquals(2, state.usedSlots)
         }
+    }
+
+    @Test
+    fun `a database error is shown as an error, not as an empty list`() = runTest {
+        every { getWarrantiesUseCase() } returns flow { throw IllegalStateException("db") }
+        every { preferencesRepository.isPremiumFlow } returns flowOf(false)
+
+        val vm = createViewModel()
+        assertTrue(vm.state.value.loadError)
+        assertFalse(vm.state.value.isLoading)
+
+        every { getWarrantiesUseCase() } returns flowOf(listOf(sampleWarranty()))
+        vm.retry()
+
+        assertFalse(vm.state.value.loadError)
+        assertEquals(1, vm.state.value.warranties.size)
     }
 
     @Test

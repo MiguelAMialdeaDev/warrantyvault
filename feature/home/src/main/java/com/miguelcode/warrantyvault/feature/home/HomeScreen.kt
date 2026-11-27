@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Stars
@@ -81,7 +82,8 @@ fun HomeScreen(
         onSettingsClick = onNavigateToSettings,
         onPremiumClick = onNavigateToPremium,
         onFilterSelected = viewModel::onFilterSelected,
-        onSearchQueryChanged = viewModel::onSearchQueryChanged
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onRetry = viewModel::retry
     )
 }
 
@@ -94,7 +96,8 @@ private fun HomeScreenContent(
     onSettingsClick: () -> Unit,
     onPremiumClick: () -> Unit,
     onFilterSelected: (WarrantyFilter) -> Unit,
-    onSearchQueryChanged: (String) -> Unit = {}
+    onSearchQueryChanged: (String) -> Unit = {},
+    onRetry: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
     /** Tarjetas que ya hicieron su animación de entrada; no se repite al reciclarlas. */
@@ -199,7 +202,16 @@ private fun HomeScreenContent(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (!state.isLoading && state.warranties.isEmpty()) {
+        if (state.loadError) {
+            EmptyStateView(
+                icon = Icons.Outlined.ErrorOutline,
+                title = stringResource(R.string.home_error_title),
+                subtitle = stringResource(R.string.home_error_subtitle),
+                actionLabel = stringResource(R.string.home_error_retry),
+                onAction = onRetry,
+                modifier = Modifier.padding(padding)
+            )
+        } else if (!state.isLoading && state.warranties.isEmpty()) {
             EmptyStateView(
                 icon = Icons.Outlined.Shield,
                 title = stringResource(R.string.home_empty_title),

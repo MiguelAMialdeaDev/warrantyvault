@@ -9,7 +9,9 @@ data class HomeState(
     val selectedFilter: WarrantyFilter = WarrantyFilter.ALL,
     val searchQuery: String = "",
     val isPremium: Boolean = false,
-    val usedSlots: Int = 0
+    val usedSlots: Int = 0,
+    /** No se pudo leer la base de datos. No es lo mismo que no tener garantías. */
+    val loadError: Boolean = false
 ) {
     val filteredWarranties: List<Warranty>
         get() {

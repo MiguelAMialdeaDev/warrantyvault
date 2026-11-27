@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
@@ -24,20 +25,25 @@ class HomeViewModel(
         loadWarranties()
     }
 
+    private var loadJob: Job? = null
+
     private fun loadWarranties() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             combine(
                 getWarrantiesUseCase(),
                 preferencesRepository.isPremiumFlow
             ) { warranties, isPremium ->
                 warranties to isPremium
             }
-                // Un fallo leyendo Room cerraba la app; así se queda con la lista vacía.
-                .catch { _state.update { it.copy(isLoading = false) } }
+                // Un fallo leyendo Room cerraba la app. Tampoco vale enseñar la lista vacía:
+                // el usuario creería que ha perdido sus garantías.
+                .catch { _state.update { it.copy(isLoading = false, loadError = true) } }
                 .collect { (warranties, isPremium) ->
                 _state.update {
                     it.copy(
                         isLoading = false,
+                        loadError = false,
                         warranties = warranties,
                         isPremium = isPremium,
                         usedSlots = warranties.size
@@ -45,6 +51,11 @@ class HomeViewModel(
                 }
             }
         }
+    }
+
+    fun retry() {
+        _state.update { it.copy(isLoading = true, loadError = false) }
+        loadWarranties()
     }
 
     fun onFilterSelected(filter: WarrantyFilter) {

@@ -16,6 +16,9 @@
     <string name="home_empty_title">Sin garantías aún</string>
     <string name="home_empty_subtitle">Añade tu primer producto para empezar a proteger tus compras</string>
     <string name="home_empty_action">Añadir garantía</string>
+    <string name="home_error_title">No se han podido cargar tus garantías</string>
+    <string name="home_error_subtitle">Tus datos siguen guardados en el móvil. Vuelve a intentarlo.</string>
+    <string name="home_error_retry">Reintentar</string>
     <string name="home_no_results_title">Sin resultados</string>
     <string name="home_no_results_subtitle">No hay garantías que coincidan con este filtro</string>
 
