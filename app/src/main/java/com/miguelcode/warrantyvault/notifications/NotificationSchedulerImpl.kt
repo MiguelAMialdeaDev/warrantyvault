@@ -11,7 +11,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.miguelcode.warrantyvault.domain.model.Warranty
 import com.miguelcode.warrantyvault.domain.notification.NotificationScheduler
-import java.time.LocalDate
+import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
@@ -27,26 +27,17 @@ class NotificationSchedulerImpl(
     }
 
     override fun scheduleExpirationAlerts(warranty: Warranty) {
-        val today = LocalDate.now()
         val endDate = warranty.warrantyEndDate
 
-        NotificationConstants.ALERT_DAYS_BEFORE.forEach { daysBefore ->
-            val alertDate = endDate.minusDays(daysBefore)
-            if (alertDate.isBefore(today)) return@forEach
-            // Ya se mostró: reprogramarlo con delay 0 lo haría reaparecer cada vez que el
-            // usuario abre la app ese día, después de haberlo descartado.
-            if (deliveredAlerts.isDelivered(warranty.id, daysBefore)) return@forEach
-
-            // El aviso de HOY cuya hora ya pasó se encola con delay 0 en lugar de
-            // descartarse. Antes se perdía para siempre: el sync de cada arranque lo
-            // reprogramaba y lo saltaba por tener el instante en el pasado.
-            val delayMillis = (alertDate
-                .atTime(NotificationConstants.ALERT_HOUR, 0)
-                .atZone(ZoneId.systemDefault())
-                .toInstant()
-                .toEpochMilli() - System.currentTimeMillis())
-                .coerceAtLeast(0L)
-
+        // AlertRules decide qué avisos tocan: se saltan los de días pasados y los ya
+        // mostrados (reprogramarlos los haría reaparecer al abrir la app tras descartarlos),
+        // y el de hoy cuya hora ya pasó sale con espera 0 en vez de perderse.
+        AlertRules.plan(
+            endDate = endDate,
+            now = Instant.now(),
+            zone = ZoneId.systemDefault(),
+            isDelivered = { deliveredAlerts.isDelivered(warranty.id, it) }
+        ).forEach { (daysBefore, delayMillis) ->
             val inputData = Data.Builder()
                 .putLong(NotificationConstants.INPUT_WARRANTY_ID, warranty.id)
                 .putLong(NotificationConstants.INPUT_DAYS_LEFT, daysBefore)

@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 class WarrantyExpirationWorker(
     context: Context,
@@ -43,32 +42,20 @@ class WarrantyExpirationWorker(
         // días después de borrar la garantía) y un aviso que se cuela tras borrarla o
         // cambiar su fecha ya no se muestra.
         val warranty = (warrantyRepository.getWarrantyById(warrantyId) as? DomainResult.Success)?.data
-            ?: return Result.success()
-        val productName = warranty.productName
-
-        // Última comprobación antes de molestar al usuario: un worker encolado sobrevive
-        // a que apague el interruptor, y cancelar trabajo en WorkManager no es inmediato.
-        if (!preferencesRepository.notificationsEnabledFlow.first()) return Result.success()
-
-        // Doze puede diferir la ejecución horas o días, así que los días restantes se
-        // recalculan contra el reloj real. El valor congelado al programar llegaba
-        // desfasado ("te quedan 7 días" dos días tarde).
-        val endDateEpochDay = inputData.getLong(
-            NotificationConstants.INPUT_END_DATE_EPOCH_DAY,
-            NO_END_DATE
+        val endDateEpochDay = inputData.getLong(NotificationConstants.INPUT_END_DATE_EPOCH_DAY, NO_END_DATE)
+        // Ver AlertRules.decide: garantía borrada, interruptor apagado, fecha cambiada o
+        // ya vencida descartan el aviso. Los días se recalculan contra el reloj real
+        // porque Doze puede retrasar la ejecución días.
+        val decision = AlertRules.decide(
+            scheduledEndEpochDay = endDateEpochDay.takeIf { it != NO_END_DATE },
+            currentEndDate = warranty?.warrantyEndDate,
+            today = LocalDate.now(),
+            notificationsEnabled = warranty != null && preferencesRepository.notificationsEnabledFlow.first(),
+            legacyDaysLeft = inputData.getLong(NotificationConstants.INPUT_DAYS_LEFT, 0)
         )
-        if (endDateEpochDay != NO_END_DATE && endDateEpochDay != warranty.warrantyEndDate.toEpochDay()) {
-            return Result.success()
-        }
-        val daysLeft = if (endDateEpochDay != NO_END_DATE) {
-            ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.ofEpochDay(endDateEpochDay))
-        } else {
-            // Trabajo encolado por una versión anterior que aún no llevaba la fecha.
-            inputData.getLong(NotificationConstants.INPUT_DAYS_LEFT, 0)
-        }
-
-        // Ya vencida cuando por fin se ejecuta: el aviso previo al vencimiento no aplica.
-        if (daysLeft < 0) return Result.success()
+        if (warranty == null || decision !is AlertRules.Decision.Show) return Result.success()
+        val productName = warranty.productName
+        val daysLeft = decision.daysLeft
 
         val scheduledDaysBefore = inputData.getLong(NotificationConstants.INPUT_DAYS_LEFT, 0)
         val shown = showNotification(warrantyId, productName, daysLeft)
