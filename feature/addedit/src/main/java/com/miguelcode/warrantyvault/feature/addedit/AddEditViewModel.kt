@@ -38,7 +38,9 @@ class AddEditViewModel(
      */
     private val savedStateHandle: SavedStateHandle? = null,
     /** Where the receipt photo is copied. Injected so tests can run the copy deterministically. */
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    /** Fecha de hoy. Inyectable para que los tests no dependan del reloj. */
+    private val today: () -> LocalDate = LocalDate::now
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddEditState())
@@ -56,7 +58,10 @@ class AddEditViewModel(
                 if (warrantyId == null) checkCanAdd()
             }
             warrantyId != null -> loadWarranty(warrantyId)
-            else -> checkCanAdd()
+            else -> {
+                applyNewWarrantyDefaults()
+                checkCanAdd()
+            }
         }
     }
 
@@ -101,6 +106,28 @@ class AddEditViewModel(
                 }
             }
         }
+    }
+
+    /**
+     * Un alta arranca con la compra de hoy y la garantía legal de España (3 años desde
+     * 2022). Es lo más habitual al registrar algo recién comprado, y antes los dos campos
+     * empezaban vacíos y Guardar seguía desactivado sin decir por qué.
+     */
+    private fun applyNewWarrantyDefaults() {
+        updateState {
+            it.copy(
+                purchaseDate = today(),
+                warrantyMonths = DEFAULT_WARRANTY_YEARS.toString(),
+                isYears = true
+            )
+        }
+        validateAndRecalculate()
+    }
+
+    /** Atajo de los chips de duración: fija la cantidad en años de una vez. */
+    fun onQuickDurationSelected(years: Int) {
+        updateState { it.copy(warrantyMonths = years.toString(), isYears = true) }
+        validateAndRecalculate()
     }
 
     private fun checkCanAdd() {
@@ -226,18 +253,25 @@ class AddEditViewModel(
         // (o con el anterior) y el fichero recién copiado quedaba huérfano en disco.
         if (current.isPhotoLoading) return
 
-        if (current.productName.isBlank()) {
-            updateState { it.copy(productNameError = AddEditError.NameRequired) }
+        // Guardar está siempre activo: al pulsarlo se marcan a la vez todos los campos que
+        // faltan. Antes el botón se apagaba sin explicar qué faltaba.
+        val nameError = AddEditError.NameRequired.takeIf { current.productName.isBlank() }
+        val dateError = AddEditError.DateRequired.takeIf { current.purchaseDate == null }
+        val durationError = current.warrantyMonthsError
+            ?: AddEditError.DurationRequired.takeIf {
+                current.purchaseDate != null && current.warrantyEndDate == null
+            }
+        if (nameError != null || dateError != null || durationError != null) {
+            updateState {
+                it.copy(
+                    productNameError = nameError,
+                    purchaseDateError = dateError,
+                    warrantyMonthsError = durationError
+                )
+            }
             return
         }
-        if (current.purchaseDate == null) {
-            updateState { it.copy(purchaseDateError = AddEditError.DateRequired) }
-            return
-        }
-        if (current.warrantyEndDate == null) {
-            updateState { it.copy(warrantyMonthsError = AddEditError.DurationRequired) }
-            return
-        }
+        if (current.purchaseDate == null || current.warrantyEndDate == null) return
         if (!current.isEditMode && !current.canAdd) {
             updateState { it.copy(formError = AddEditError.PremiumLimit) }
             return
@@ -337,6 +371,9 @@ class AddEditViewModel(
 
     companion object {
         private const val MAX_WARRANTY_MONTHS = 600L // 50 años
+        /** Garantía legal en España para compras desde 2022 (RDL 7/2021). */
+        const val DEFAULT_WARRANTY_YEARS = 3
+        val QUICK_DURATION_YEARS = listOf(1, 2, 3, 5)
         private const val MAX_INPUT_DIGITS = 4 // 9999 cabe sobrado en Long
         const val MAX_PRODUCT_NAME_LENGTH = 60
         const val MAX_STORE_LENGTH = 80

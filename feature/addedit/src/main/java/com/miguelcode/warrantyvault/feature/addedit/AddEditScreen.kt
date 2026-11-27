@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,7 +21,9 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.Store
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +56,7 @@ import com.miguelcode.warrantyvault.feature.addedit.components.PhotoSourceDialog
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -208,13 +212,13 @@ fun AddEditScreen(
                 actions = {
                     IconButton(
                         onClick = onSaveSafe,
-                        enabled = state.isFormValid && !state.isSaving && !state.isPhotoLoading
+                        // Siempre activo: si falta algo, al pulsarlo se marca en el formulario.
+                        enabled = !state.isSaving && !state.isPhotoLoading
                     ) {
                         Icon(
                             Icons.Outlined.Check,
                             contentDescription = stringResource(R.string.addedit_nav_save),
-                            tint = if (state.isFormValid) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -335,6 +339,29 @@ fun AddEditScreen(
                 }
             }
 
+            // Atajos de duración: 3 años es la garantía legal en España y lo más común.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AddEditViewModel.QUICK_DURATION_YEARS.forEach { years ->
+                    FilterChip(
+                        selected = state.isYears && state.warrantyMonths == years.toString(),
+                        onClick = { viewModel.onQuickDurationSelected(years) },
+                        label = { Text(pluralStringResource(R.plurals.addedit_duration_chip, years, years)) }
+                    )
+                }
+            }
+            Text(
+                text = stringResource(R.string.addedit_duration_legal_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
             // Calculated end date
             if (state.warrantyEndDate != null) {
                 val fmt = rememberDateFormatter()
@@ -367,6 +394,19 @@ fun AddEditScreen(
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
+
+            // Botón grande al final: el check de la barra superior queda lejos del pulgar
+            // después de rellenar el formulario.
+            Button(
+                onClick = onSaveSafe,
+                enabled = !state.isSaving && !state.isPhotoLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(52.dp)
+            ) {
+                Text(stringResource(R.string.addedit_save_button))
+            }
 
             // Indicador inline mientras guarda (el botón Guardar vive en el TopBar ✓)
             if (state.isSaving) {

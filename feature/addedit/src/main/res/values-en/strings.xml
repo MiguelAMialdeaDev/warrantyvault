@@ -15,6 +15,12 @@
 
     <string name="addedit_segment_months">Months</string>
     <string name="addedit_segment_years">Years</string>
+    <plurals name="addedit_duration_chip">
+        <item quantity="one">%d year</item>
+        <item quantity="other">%d years</item>
+    </plurals>
+    <string name="addedit_duration_legal_hint">In Spain, new products come with a 3 year legal warranty.</string>
+    <string name="addedit_save_button">Save warranty</string>
 
     <string name="addedit_end_date_label">Warranty ends: %1$s</string>
 

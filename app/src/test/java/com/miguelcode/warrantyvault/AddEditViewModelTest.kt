@@ -47,7 +47,8 @@ class AddEditViewModelTest {
             checkPremiumLimitUseCase = checkPremiumLimitUseCase,
             // Same scheduler as Main: the photo copy only runs when a test advances it, so
             // no coroutine can outlive the test and resume after resetMain().
-            ioDispatcher = StandardTestDispatcher(mainDispatcherRule.testDispatcher.scheduler)
+            ioDispatcher = StandardTestDispatcher(mainDispatcherRule.testDispatcher.scheduler),
+            today = { TODAY }
         )
     }
 
@@ -220,6 +221,10 @@ class AddEditViewModelTest {
         assertEquals("/receipts/ticket.jpg", vm.state.value.receiptPhotoPath)
     }
 
+    private companion object {
+        val TODAY: LocalDate = LocalDate.of(2026, 11, 27)
+    }
+
     private fun warrantyEndingOn(purchase: LocalDate, end: LocalDate) = Warranty(
         id = 5,
         productName = "PS5",
@@ -244,35 +249,41 @@ class AddEditViewModelTest {
     }
 
     @Test
-    fun `validation fails on missing purchase date`() = runTest {
+    fun `a new warranty starts today with the three year legal warranty`() = runTest {
         coEvery { checkPremiumLimitUseCase() } returns true
 
-        val vm = createViewModel()
+        val state = createViewModel().state.value
 
-        vm.state.test {
-            awaitItem()
-            vm.onProductNameChanged("MacBook")
-            awaitItem()
-            vm.onSave()
-            assertNotNull(awaitItem().purchaseDateError)
-        }
+        assertEquals(TODAY, state.purchaseDate)
+        assertEquals("3", state.warrantyMonths)
+        assertTrue(state.isYears)
+        assertEquals(TODAY.plusYears(3), state.warrantyEndDate)
     }
 
     @Test
-    fun `validation fails on missing warranty duration`() = runTest {
+    fun `quick duration chips set whole years`() = runTest {
         coEvery { checkPremiumLimitUseCase() } returns true
-
         val vm = createViewModel()
+        vm.onIsYearsChanged(false)
 
-        vm.state.test {
-            awaitItem()
-            vm.onProductNameChanged("MacBook")
-            awaitItem()
-            vm.onPurchaseDateChanged(LocalDate.now())
-            awaitItem()
-            vm.onSave()
-            assertNotNull(awaitItem().warrantyMonthsError)
-        }
+        vm.onQuickDurationSelected(2)
+
+        assertEquals("2", vm.state.value.warrantyMonths)
+        assertTrue(vm.state.value.isYears)
+        assertEquals(TODAY.plusYears(2), vm.state.value.warrantyEndDate)
+    }
+
+    @Test
+    fun `saving marks every missing field at once`() = runTest {
+        coEvery { checkPremiumLimitUseCase() } returns true
+        val vm = createViewModel()
+        vm.onWarrantyMonthsChanged("")
+
+        vm.onSave()
+
+        assertEquals(AddEditError.NameRequired, vm.state.value.productNameError)
+        assertEquals(AddEditError.DurationRequired, vm.state.value.warrantyMonthsError)
+        coVerify(exactly = 0) { addWarrantyUseCase(any()) }
     }
 
     @Test
@@ -281,20 +292,12 @@ class AddEditViewModelTest {
         coEvery { addWarrantyUseCase(any()) } returns Result.Success(1L)
 
         val vm = createViewModel()
+        vm.onProductNameChanged("MacBook")
+        vm.onPurchaseDateChanged(LocalDate.of(2025, 3, 1))
+        vm.onWarrantyMonthsChanged("24")
+        vm.onSave()
 
-        vm.state.test {
-            awaitItem()
-            vm.onProductNameChanged("MacBook")
-            awaitItem()
-            vm.onPurchaseDateChanged(LocalDate.now())
-            awaitItem()
-            vm.onWarrantyMonthsChanged("24")
-            awaitItem()
-            vm.onSave()
-            // Skip intermediate saving state
-            val finalState = expectMostRecentItem()
-            assertTrue(finalState.isSaved)
-        }
+        assertTrue(vm.state.value.isSaved)
 
         coVerify { addWarrantyUseCase(any()) }
     }
@@ -309,6 +312,7 @@ class AddEditViewModelTest {
         vm.state.test {
             awaitItem()
             vm.onPurchaseDateChanged(purchaseDate)
+            vm.onIsYearsChanged(false)
             vm.onWarrantyMonthsChanged("12")
             // onWarrantyMonthsChanged dispara dos updates (el valor + recalcular fecha fin).
             // expectMostRecentItem toma el último estado coherente.

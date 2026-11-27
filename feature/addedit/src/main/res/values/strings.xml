@@ -15,6 +15,12 @@
 
     <string name="addedit_segment_months">Meses</string>
     <string name="addedit_segment_years">Años</string>
+    <plurals name="addedit_duration_chip">
+        <item quantity="one">%d año</item>
+        <item quantity="other">%d años</item>
+    </plurals>
+    <string name="addedit_duration_legal_hint">En España, lo que compras nuevo tiene 3 años de garantía legal.</string>
+    <string name="addedit_save_button">Guardar garantía</string>
 
     <string name="addedit_end_date_label">Fin de garantía: %1$s</string>
 
