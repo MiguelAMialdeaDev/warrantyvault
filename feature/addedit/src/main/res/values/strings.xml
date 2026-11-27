@@ -25,6 +25,15 @@
     <string name="addedit_discard_body">Lo que has escrito en esta garantía no se guardará.</string>
     <string name="addedit_discard_confirm">Descartar</string>
     <string name="addedit_discard_keep">Seguir editando</string>
+    <string name="addedit_receipt_reading">Leyendo el ticket…</string>
+    <string name="addedit_receipt_found_title">Datos encontrados en el ticket</string>
+    <string name="addedit_receipt_store">Tienda: %1$s</string>
+    <string name="addedit_receipt_date">Fecha: %1$s</string>
+    <string name="addedit_receipt_total">Precio: %1$s €</string>
+    <string name="addedit_receipt_apply">Rellenar</string>
+    <string name="addedit_receipt_apply_premium">Rellenar con Premium</string>
+    <string name="addedit_receipt_dismiss">Descartar</string>
+    <string name="addedit_scan_unavailable">El escáner no está disponible en este móvil. Usa la cámara.</string>
 
     <string name="addedit_end_date_label">Fin de garantía: %1$s</string>
 
@@ -36,6 +45,7 @@
     <string name="addedit_photo_add">Añadir foto</string>
     <string name="addedit_photo_add_label">Añadir foto del ticket</string>
     <string name="addedit_photo_source_title">Foto del ticket</string>
+    <string name="addedit_photo_source_scan">Escanear ticket</string>
     <string name="addedit_photo_source_camera">Hacer una foto</string>
     <string name="addedit_photo_source_gallery">Elegir de la galería</string>
     <string name="addedit_photo_source_cancel">Cancelar</string>

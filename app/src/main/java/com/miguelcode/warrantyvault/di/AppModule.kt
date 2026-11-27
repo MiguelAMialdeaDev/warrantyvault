@@ -33,6 +33,8 @@ import com.miguelcode.warrantyvault.notifications.NotificationSchedulerImpl
 import com.miguelcode.warrantyvault.storage.OrphanPhotoSweeper
 import com.miguelcode.warrantyvault.storage.PhotoFileCleanerImpl
 import com.miguelcode.warrantyvault.feature.addedit.AddEditViewModel
+import com.miguelcode.warrantyvault.feature.addedit.receipt.MlKitReceiptTextReader
+import com.miguelcode.warrantyvault.feature.addedit.receipt.ReceiptTextReader
 import com.miguelcode.warrantyvault.feature.detail.DetailViewModel
 import com.miguelcode.warrantyvault.feature.home.HomeViewModel
 import com.miguelcode.warrantyvault.feature.onboarding.OnboardingViewModel
@@ -80,6 +82,7 @@ val repositoryModule = module {
     // NO cambiar a FirebaseAnalyticsTracker sin leer antes su KDoc: hay que actualizar
     // la política de privacidad y la ficha de Play primero.
     single<AnalyticsTracker> { NoOpAnalyticsTracker() }
+    single<ReceiptTextReader> { MlKitReceiptTextReader(androidContext()) }
     single { WarrantyPdfExporter(androidContext()) }
     single<WarrantyBackup> { WarrantyBackupImpl(androidContext(), get(), get(), get(), get()) }
 }
@@ -115,7 +118,9 @@ val viewModelModule = module {
             // Koin lo construye desde los CreationExtras del ViewModel, no de una
             // definición del módulo. Es lo que permite recuperar el formulario cuando
             // el sistema mata el proceso con la pantalla abierta.
-            savedStateHandle = parameters.getOrNull()
+            savedStateHandle = parameters.getOrNull(),
+            receiptReader = get(),
+            isPremiumFlow = get<PreferencesRepository>().isPremiumFlow
         )
     }
     viewModel { OnboardingViewModel(get(), get()) }

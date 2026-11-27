@@ -35,5 +35,10 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
+    // Escáner y OCR de ML Kit a través de Play Services: el modelo se descarga bajo
+    // demanda y no engorda el APK. Todo corre en el móvil, sin enviar el ticket fuera.
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
     implementation("androidx.activity:activity-compose:1.9.0")
 }

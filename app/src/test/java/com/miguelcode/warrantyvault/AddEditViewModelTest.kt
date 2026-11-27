@@ -17,6 +17,7 @@ import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -38,7 +39,11 @@ class AddEditViewModelTest {
     private val updateWarrantyUseCase: UpdateWarrantyUseCase = mockk()
     private val checkPremiumLimitUseCase: CheckPremiumLimitUseCase = mockk()
 
-    private fun createViewModel(warrantyId: Long? = null): AddEditViewModel {
+    private fun createViewModel(
+        warrantyId: Long? = null,
+        receiptLines: List<String>? = null,
+        premium: Boolean = false
+    ): AddEditViewModel {
         return AddEditViewModel(
             warrantyId = warrantyId,
             getWarrantyByIdUseCase = getWarrantyByIdUseCase,
@@ -48,7 +53,9 @@ class AddEditViewModelTest {
             // Same scheduler as Main: the photo copy only runs when a test advances it, so
             // no coroutine can outlive the test and resume after resetMain().
             ioDispatcher = StandardTestDispatcher(mainDispatcherRule.testDispatcher.scheduler),
-            today = { TODAY }
+            today = { TODAY },
+            receiptReader = { receiptLines },
+            isPremiumFlow = flowOf(premium)
         )
     }
 
@@ -280,6 +287,41 @@ class AddEditViewModelTest {
         val vm = createViewModel(warrantyId = 5L)
 
         assertFalse(vm.state.value.hasChanges)
+    }
+
+    @Test
+    fun `a premium user can fill the form from the receipt`() = runTest {
+        coEvery { checkPremiumLimitUseCase() } returns true
+        val vm = createViewModel(
+            receiptLines = listOf("FNAC CALLAO", "12/10/2026", "TOTAL 349,90"),
+            premium = true
+        )
+
+        vm.onPhotoPicked(mockk(relaxed = true)) { "/receipts/t.jpg" }
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals("Fnac", vm.state.value.receiptGuess?.store?.take(4))
+
+        vm.applyReceiptGuess()
+
+        val state = vm.state.value
+        assertEquals("Fnac Callao", state.store)
+        assertEquals("349.9", state.price)
+        assertEquals(LocalDate.of(2026, 10, 12), state.purchaseDate)
+        assertEquals(LocalDate.of(2029, 10, 12), state.warrantyEndDate)
+        assertNull(state.receiptGuess)
+    }
+
+    @Test
+    fun `a free user sees the guess but cannot apply it`() = runTest {
+        coEvery { checkPremiumLimitUseCase() } returns true
+        val vm = createViewModel(receiptLines = listOf("FNAC CALLAO", "TOTAL 10,00"))
+
+        vm.onPhotoPicked(mockk(relaxed = true)) { "/receipts/t.jpg" }
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        vm.applyReceiptGuess()
+
+        assertNotNull(vm.state.value.receiptGuess)
+        assertEquals("", vm.state.value.store)
     }
 
     @Test

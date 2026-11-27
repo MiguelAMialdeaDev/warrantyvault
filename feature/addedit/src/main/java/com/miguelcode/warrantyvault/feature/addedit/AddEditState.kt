@@ -2,6 +2,7 @@ package com.miguelcode.warrantyvault.feature.addedit
 
 import com.miguelcode.warrantyvault.domain.model.WarrantyCategory
 import com.miguelcode.warrantyvault.domain.model.WarrantyTracking
+import com.miguelcode.warrantyvault.feature.addedit.receipt.ReceiptGuess
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -53,7 +54,13 @@ data class AddEditState(
     val hasChanges: Boolean = false,
     /** Seguimiento de la garantía editada. El formulario no lo cambia, solo lo conserva. */
     val tracking: WarrantyTracking = WarrantyTracking.NONE,
-    val trackingDate: LocalDate? = null
+    val trackingDate: LocalDate? = null,
+    /** El OCR está leyendo la foto recién elegida. */
+    val isReadingReceipt: Boolean = false,
+    /** Lo que el OCR ha encontrado y el usuario aún no ha aplicado ni descartado. */
+    val receiptGuess: ReceiptGuess? = null,
+    /** Rellenar desde el ticket es de Premium; sin él se ofrece ir a la pantalla de planes. */
+    val canAutofill: Boolean = false
 ) {
     val isFormValid: Boolean
         get() = productName.isNotBlank() &&

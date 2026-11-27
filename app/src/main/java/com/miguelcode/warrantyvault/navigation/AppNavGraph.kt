@@ -52,7 +52,10 @@ fun AppNavGraph(
             )
         }
         composable(Screen.Add.route) {
-            AddEditScreen(onNavigateBack = { navController.popBackStack() })
+            AddEditScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPremium = { navController.navigate(Screen.Premium.route) }
+            )
         }
         composable(
             route = Screen.Edit.route,
@@ -61,7 +64,8 @@ fun AppNavGraph(
             val warrantyId = entry.arguments?.getLong(Screen.Edit.ARG) ?: return@composable
             AddEditScreen(
                 warrantyId = warrantyId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPremium = { navController.navigate(Screen.Premium.route) }
             )
         }
         composable(Screen.Settings.route) {

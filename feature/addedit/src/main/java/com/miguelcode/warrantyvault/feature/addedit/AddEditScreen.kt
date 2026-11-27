@@ -43,6 +43,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.IntentSenderRequest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import com.miguelcode.warrantyvault.feature.addedit.components.ReceiptGuessCard
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,6 +98,7 @@ private fun AddEditError.localized(): String = stringResource(
 @Composable
 fun AddEditScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToPremium: () -> Unit = {},
     warrantyId: Long? = null,
     viewModel: AddEditViewModel = koinViewModel { parametersOf(warrantyId) }
 ) {
@@ -136,6 +145,18 @@ fun AddEditScreen(
             PhotoStorage.copyToInternal(appContext, source).also { capture.delete() }
         }
     }
+    // Escáner de documentos de ML Kit: recorta y endereza el ticket y no pide permiso de
+    // cámara. Vive en Play Services, así que en móviles sin él se cae a la cámara normal.
+    val scanUnavailableMessage = stringResource(R.string.addedit_scan_unavailable)
+    val scanLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val page = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
+            ?.pages?.firstOrNull()?.imageUri ?: return@rememberLauncherForActivityResult
+        viewModel.onPhotoPicked(page) { source -> PhotoStorage.copyToInternal(appContext, source) }
+    }
+    val activity = remember(context) { context.findActivity() }
     var showPhotoSourceDialog by rememberSaveable { mutableStateOf(false) }
     val cameraUnavailableMessage = stringResource(R.string.addedit_photo_camera_unavailable)
     val launchCamera: () -> Unit = {
@@ -152,6 +173,29 @@ fun AddEditScreen(
     }
     if (showPhotoSourceDialog) {
         PhotoSourceDialog(
+            onScan = {
+                showPhotoSourceDialog = false
+                val host = activity
+                if (host == null) {
+                    launchCamera()
+                } else {
+                    GmsDocumentScanning.getClient(
+                        GmsDocumentScannerOptions.Builder()
+                            .setPageLimit(1)
+                            .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG)
+                            .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
+                            .setGalleryImportAllowed(true)
+                            .build()
+                    ).getStartScanIntent(host)
+                        .addOnSuccessListener { sender ->
+                            scanLauncher.launch(IntentSenderRequest.Builder(sender).build())
+                        }
+                        .addOnFailureListener {
+                            scope.launch { snackbarHostState.showSnackbar(scanUnavailableMessage) }
+                            launchCamera()
+                        }
+                }
+            },
             onCamera = {
                 showPhotoSourceDialog = false
                 launchCamera()
@@ -273,6 +317,24 @@ fun AddEditScreen(
                 isLoading = state.isPhotoLoading,
                 onClick = { showPhotoSourceDialog = true }
             )
+
+            if (state.isReadingReceipt) {
+                Text(
+                    text = stringResource(R.string.addedit_receipt_reading),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+            state.receiptGuess?.let { guess ->
+                ReceiptGuessCard(
+                    guess = guess,
+                    canAutofill = state.canAutofill,
+                    onApply = viewModel::applyReceiptGuess,
+                    onGoPremium = onNavigateToPremium,
+                    onDismiss = viewModel::dismissReceiptGuess
+                )
+            }
 
             // Product name
             OutlinedTextField(
@@ -462,4 +524,11 @@ fun AddEditScreen(
             Spacer(Modifier.height(16.dp))
         }
     }
+}
+
+/** El escáner necesita la Activity; LocalContext puede ser un ContextWrapper encima. */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

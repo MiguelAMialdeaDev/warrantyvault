@@ -25,6 +25,15 @@
     <string name="addedit_discard_body">What you have entered for this warranty will not be saved.</string>
     <string name="addedit_discard_confirm">Discard</string>
     <string name="addedit_discard_keep">Keep editing</string>
+    <string name="addedit_receipt_reading">Reading the receipt…</string>
+    <string name="addedit_receipt_found_title">Found on the receipt</string>
+    <string name="addedit_receipt_store">Store: %1$s</string>
+    <string name="addedit_receipt_date">Date: %1$s</string>
+    <string name="addedit_receipt_total">Price: €%1$s</string>
+    <string name="addedit_receipt_apply">Fill in</string>
+    <string name="addedit_receipt_apply_premium">Fill in with Premium</string>
+    <string name="addedit_receipt_dismiss">Dismiss</string>
+    <string name="addedit_scan_unavailable">The scanner is not available on this phone. Use the camera.</string>
 
     <string name="addedit_end_date_label">Warranty ends: %1$s</string>
 
@@ -36,6 +45,7 @@
     <string name="addedit_photo_add">Add photo</string>
     <string name="addedit_photo_add_label">Add receipt photo</string>
     <string name="addedit_photo_source_title">Receipt photo</string>
+    <string name="addedit_photo_source_scan">Scan receipt</string>
     <string name="addedit_photo_source_camera">Take a photo</string>
     <string name="addedit_photo_source_gallery">Choose from gallery</string>
     <string name="addedit_photo_source_cancel">Cancel</string>

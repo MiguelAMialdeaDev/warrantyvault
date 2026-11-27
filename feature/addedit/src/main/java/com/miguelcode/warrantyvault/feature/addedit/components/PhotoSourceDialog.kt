@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.AlertDialog
@@ -25,9 +26,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.miguelcode.warrantyvault.feature.addedit.R
 
-/** Elegir de dónde sale la foto del ticket: cámara (primero, es lo habitual) o galería. */
+/**
+ * De dónde sale la foto del ticket. Escanear va primero: recorta y endereza el papel, que
+ * es lo que mejor lee el OCR. La cámara normal queda para móviles sin el escáner.
+ */
 @Composable
 fun PhotoSourceDialog(
+    onScan: () -> Unit,
     onCamera: () -> Unit,
     onGallery: () -> Unit,
     onDismiss: () -> Unit
@@ -37,6 +42,7 @@ fun PhotoSourceDialog(
         title = { Text(stringResource(R.string.addedit_photo_source_title)) },
         text = {
             Column {
+                SourceRow(Icons.Outlined.DocumentScanner, stringResource(R.string.addedit_photo_source_scan), onScan)
                 SourceRow(Icons.Outlined.PhotoCamera, stringResource(R.string.addedit_photo_source_camera), onCamera)
                 SourceRow(Icons.Outlined.PhotoLibrary, stringResource(R.string.addedit_photo_source_gallery), onGallery)
             }

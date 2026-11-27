@@ -22,6 +22,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
+import com.miguelcode.warrantyvault.feature.addedit.receipt.ReceiptParser
+import com.miguelcode.warrantyvault.feature.addedit.receipt.ReceiptTextReader
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -41,7 +46,11 @@ class AddEditViewModel(
     /** Where the receipt photo is copied. Injected so tests can run the copy deterministically. */
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     /** Fecha de hoy. Inyectable para que los tests no dependan del reloj. */
-    private val today: () -> LocalDate = LocalDate::now
+    private val today: () -> LocalDate = LocalDate::now,
+    /** OCR del ticket. Null en tests o si no se quiere leer. */
+    private val receiptReader: ReceiptTextReader? = null,
+    /** Si el usuario es Premium, para el autorrelleno desde el ticket. */
+    isPremiumFlow: Flow<Boolean> = flowOf(false)
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddEditState())
@@ -63,6 +72,10 @@ class AddEditViewModel(
                 applyNewWarrantyDefaults()
                 checkCanAdd()
             }
+        }
+        // Después de restaurar el borrador, que si no lo pisaría.
+        viewModelScope.launch {
+            isPremiumFlow.collect { premium -> _state.update { it.copy(canAutofill = premium) } }
         }
     }
 
@@ -213,7 +226,43 @@ class AddEditViewModel(
                     hasChanges = it.hasChanges || path != null
                 )
             }
+            if (path != null) readReceipt(path)
         }
+    }
+
+    /**
+     * Lee el ticket recién guardado y propone tienda, fecha y precio. Solo se propone:
+     * el usuario decide si aplicarlo, porque el OCR de un ticket arrugado se equivoca.
+     */
+    private fun readReceipt(path: String) {
+        val reader = receiptReader ?: return
+        updateState { it.copy(isReadingReceipt = true, receiptGuess = null) }
+        viewModelScope.launch {
+            val lines = reader.readLines(path)
+            val guess = lines?.let { ReceiptParser.parse(it, today()) }?.takeUnless { it.isEmpty }
+            updateState { it.copy(isReadingReceipt = false, receiptGuess = guess) }
+        }
+    }
+
+    /** Rellena con lo encontrado en el ticket. Solo Premium: la pantalla lleva a planes si no. */
+    fun applyReceiptGuess() {
+        val current = _state.value
+        val guess = current.receiptGuess ?: return
+        if (!current.canAutofill) return
+        edit {
+            it.copy(
+                store = guess.store?.take(MAX_STORE_LENGTH) ?: it.store,
+                price = guess.total?.toPriceInput() ?: it.price,
+                purchaseDate = guess.purchaseDate ?: it.purchaseDate,
+                purchaseDateError = if (guess.purchaseDate != null) null else it.purchaseDateError,
+                receiptGuess = null
+            )
+        }
+        validateAndRecalculate()
+    }
+
+    fun dismissReceiptGuess() {
+        updateState { it.copy(receiptGuess = null) }
     }
 
     /**
